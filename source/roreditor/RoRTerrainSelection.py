@@ -1,21 +1,11 @@
 # Lepes 2008-12-03
-import wx, os, os.path, copy
-import errno
-import ogre.renderer.OGRE as ogre 
 
-from ror.truckparser import *
-from ror.terrainparser import *
-from ror.odefparser import *
-from wxogre.OgreManager import *
-from wxogre.wxOgreWindow import *
-from ror.rorcommon import *
-from ror.SimpleTruckRepresentation import *
-from RoRVirtualKeys import *
-from time import clock
-from ror.lputils import *
 from math import radians, degrees
+
 from RoRConstants import *
-import SelectionAxis
+from RoRVirtualKeys import *
+from ror.SimpleTruckRepresentation import *
+from ror.lputils import *
 
 UPPERFACE = ["nearMiddle", "nearLeftTop", "nearRightTop", "farLeftTop", "farRightTop", "centerUp"]
 BOTTOMFACE = ["nearLeftBottom", "nearRightBottom", "farLeftBottom", "farRightBottom"]
@@ -178,7 +168,7 @@ class simpleEntryClass(object):
 			
 		
 	ogrePosition = property(getogrePosition, setogrePosition,
-				 doc=""" ogre.Vector3
+				 doc=""" Ogre.Vector3
 				 work directly with ogre and notify changes to ogreWindow""") 
    
 	ogreRotation = property(getogreRotation, setogreRotation,
@@ -232,7 +222,7 @@ class terrainEntryClass(simpleEntryClass):
 			self.OnSelecting = []
 #			log().debug('deleting from memory %s' % self.data.name)
 			super(terrainEntryClass, self).removeFromScene()
-		except Exception, err:
+		except Exception as err:
 			log().error('error deleting entry %s' % str(self.uuid))
 			if self.data:
 				log().error('error deleting data %s' % str(self.data.name))
@@ -243,7 +233,7 @@ class terrainEntryClass(simpleEntryClass):
 		simpleEntryClass.__init__(self, ogreWindow)
 		self.data = None
 		self.manual = None
-		self.oldOgrePosition = ogre.Vector3(0, 0, 0)
+		self.oldOgrePosition = Ogre.Vector3(0, 0, 0)
 		# difference from actual position and the last one.
 		
 		self._height = 0
@@ -328,14 +318,14 @@ class terrainEntryClass(simpleEntryClass):
 			return 
 		self.node.setScale(1, 1, 1)
 		if not self.data.ext.lower() in noRotateExt:
-			self.node.rotate(ogre.Vector3(1, 0, 0), radians(90), relativeTo=ogre.Node.TransformSpace.TS_WORLD)
+			self.node.rotate(Ogre.Vector3(1, 0, 0), radians(90), relativeTo=Ogre.Node.TransformSpace.TS_WORLD)
 		rot = self.node._getDerivedOrientation()
 		rot.normalise()
 		self._rotationZ = degrees(rot.getYaw(False).valueRadians()) 
 		self._rotationY = degrees(rot.getRoll(False).valueRadians())
 		self._rotationX = degrees(rot.getPitch(False).valueRadians())
 		if not self.data.ext.lower() in noRotateExt:
-			self.node.rotate(ogre.Vector3(1, 0, 0), radians(-90), relativeTo=ogre.Node.TransformSpace.TS_WORLD)
+			self.node.rotate(Ogre.Vector3(1, 0, 0), radians(-90), relativeTo=Ogre.Node.TransformSpace.TS_WORLD)
 		self.node.setScale(self.data.scale)
 
 #		self._rotationX = round(self._rotationX, 2)
@@ -354,16 +344,16 @@ class terrainEntryClass(simpleEntryClass):
 		self.node.setScale(1, 1, 1)
 		self.node.resetOrientation()
 		
-		rot = ogre.Quaternion(1, 0, 0, 0)
+		rot = Ogre.Quaternion(1, 0, 0, 0)
 		if abs(self._rotationX) > 0.001:
-			rot = rot * ogre.Quaternion(ogre.Degree(self._rotationX), ogre.Vector3(1, 0, 0))
+			rot = rot * Ogre.Quaternion(Ogre.Degree(self._rotationX), Ogre.Vector3(1, 0, 0))
 		if abs(self._rotationY) > 0.001:
-			rot = rot * ogre.Quaternion(ogre.Degree(self._rotationY), ogre.Vector3(0, 1, 0))
+			rot = rot * Ogre.Quaternion(Ogre.Degree(self._rotationY), Ogre.Vector3(0, 1, 0))
 		if abs(self._rotationZ) > 0.001:						
-			rot = rot * ogre.Quaternion(ogre.Degree(self._rotationZ), ogre.Vector3(0, 0, 1))
+			rot = rot * Ogre.Quaternion(Ogre.Degree(self._rotationZ), Ogre.Vector3(0, 0, 1))
 		self.node.rotate(rot) #RoR source code
 		if not self.data.ext.lower() in noRotateExt:
-			self.node.pitch(ogre.Degree(-90)) #RoR source code
+			self.node.pitch(Ogre.Degree(-90)) #RoR source code
 		self.node.setScale(self.data.scale)
 			
 		self.oldOgrePosition = self.node.getPosition()
@@ -380,17 +370,17 @@ class terrainEntryClass(simpleEntryClass):
 		
 		return a tuple: rx, ry, rz
 		"""
-		if isinstance(pos, TupleType):
-			vector3 = ogre.Vector3(pos[0], pos[1], pos[2])
-		elif isinstance(pos, ogre.Vector3):
+		if isinstance(pos, tuple):
+			vector3 = Ogre.Vector3(pos[0], pos[1], pos[2])
+		elif isinstance(pos, Ogre.Vector3):
 			vector3 = pos
 		else:
 			raise showedError("TerrainentryClass.rorLookAt need a vector3 or tuple!!")
 		
 		self.node.resetOrientation()
-		self.node.lookAt(vector3, ogre.Node.TransformSpace.TS_WORLD, ogre.Vector3(0, 0, 1))
-		self.node.lookAt(vector3, ogre.Node.TransformSpace.TS_WORLD, ogre.Vector3(0, 1, 0))
-		self.node.lookAt(vector3, ogre.Node.TransformSpace.TS_WORLD, ogre.Vector3(1, 0, 0))
+		self.node.lookAt(vector3, Ogre.Node.TransformSpace.TS_WORLD, Ogre.Vector3(0, 0, 1))
+		self.node.lookAt(vector3, Ogre.Node.TransformSpace.TS_WORLD, Ogre.Vector3(0, 1, 0))
+		self.node.lookAt(vector3, Ogre.Node.TransformSpace.TS_WORLD, Ogre.Vector3(1, 0, 0))
 		rx, ry, rz = self.getrotation()
 		# it is really strange that it works :-P
 		self.rotation = 0.0, ry, -rz
@@ -403,9 +393,9 @@ class terrainEntryClass(simpleEntryClass):
 		
 		return the new position and rotation of this road six-tuple
 		"""
-		if isinstance(lookAt, TupleType):
-			vector3 = ogre.Vector3(pos[0], pos[1], pos[2])
-		elif isinstance(lookAt, ogre.Vector3):
+		if isinstance(lookAt, tuple):
+			vector3 = Ogre.Vector3(pos[0], pos[1], pos[2])
+		elif isinstance(lookAt, Ogre.Vector3):
 			vector3 = pos
 		else:
 			raise showedError("TerrainentryClass.roadLookAt need a vector3 or tuple!!")
@@ -415,8 +405,8 @@ class terrainEntryClass(simpleEntryClass):
 		elif lastRy - ry < 0.0: neg = -1.0
 		else: neg = 0.0
 
-		lleft = self.node.getPosition() + ogre.Quaternion(ogre.Degree(ry), ogre.Vector3(0, 1, 0)) * ogre.Vector3(0.0, 0.0, neg * 4.5);			
-		self.node.setPosition(ogre.Quaternion(ogre.Degree(lastRy - ry), ogre.Vector3(0, 1, 0)) * (self.node.getPosition() - lleft) + lleft)
+		lleft = self.node.getPosition() + Ogre.Quaternion(Ogre.Degree(ry), Ogre.Vector3(0, 1, 0)) * Ogre.Vector3(0.0, 0.0, neg * 4.5);			
+		self.node.setPosition(Ogre.Quaternion(Ogre.Degree(lastRy - ry), Ogre.Vector3(0, 1, 0)) * (self.node.getPosition() - lleft) + lleft)
 		p = self.node._getDerivedPosition()
 		rx, ry, rz = self.getrotation()
 		rx = 0.0
@@ -487,7 +477,7 @@ class terrainEntryClass(simpleEntryClass):
 			x = p.x
 			y = p.y
 			z = p.z
-			self._terrainHeight = self.ogreWindow.getTerrainHeight(ogre.Vector3(x, y, z))
+			self._terrainHeight = self.ogreWindow.getTerrainHeight(Ogre.Vector3(x, y, z))
 			if self._terrainHeight is None:
 				self._terrainHeight = 0
 				self._height = 0
@@ -703,7 +693,7 @@ class selectionClass(object):
 		""" used when we need multiselection option
 		f.e.: RoRTruckOgrewindow"""
 		self.entries = [] #holds selected entries
-		self._mouseOffset = ogre.Vector3(0, 0, 0)
+		self._mouseOffset = Ogre.Vector3(0, 0, 0)
 		self.axis = self._ogreWindow.axis
 		self.multiselectNode = ogreWindow.smNewNode("multiselectNode")
 		 
@@ -843,7 +833,7 @@ class selectionClass(object):
 						doc=""" used by replaceEntity """)
 	   
 	mouseOffset = property(_getmouseOffset, _setmouseOffset, _delmouseOffset,
-					 doc=""" ogre.Vector3
+					 doc=""" Ogre.Vector3
 						   When selecting with mouse it holds
 						   offset between mouse Position and (0,0,0) 
 						   coordenate of the selected Object.
@@ -906,9 +896,9 @@ class odefEntryClass(simpleEntryClass):
 #		self.node.setScale(1,1,1) really needed ?=?
 		self.node.resetOrientation()
 		
-		rot = ogre.Quaternion(ogre.Degree(self._rotationX), ogre.Vector3(1, 0, 0)) * \
-			ogre.Quaternion(ogre.Degree(self._rotationY), ogre.Vector3(0, 1, 0)) * \
-			ogre.Quaternion(ogre.Degree(self._rotationZ), ogre.Vector3(0, 0, 1))
+		rot = Ogre.Quaternion(Ogre.Degree(self._rotationX), Ogre.Vector3(1, 0, 0)) * \
+			Ogre.Quaternion(Ogre.Degree(self._rotationY), Ogre.Vector3(0, 1, 0)) * \
+			Ogre.Quaternion(Ogre.Degree(self._rotationZ), Ogre.Vector3(0, 0, 1))
 					
 
 		self.node.rotate(rot) #RoR source code
@@ -967,8 +957,8 @@ class BoundBoxClass(object):
 		
 			return derivedPosition vector3.
 		"""
-		if isinstance(vector3, TupleType):
-			v = ogre.Vector3(vector3[0], vector3[1], vector3[2])
+		if isinstance(vector3, tuple):
+			v = Ogre.Vector3(vector3[0], vector3[1], vector3[2])
 		else:
 			v = vector3
 		self.child.setPosition(v)
@@ -1060,7 +1050,7 @@ class BoundBoxClass(object):
 		"""
 		if isinstance(vector3OrEntry, simpleEntryClass):
 			vector = vector3OrEntry.node._getDerivedPosition()
-		elif isinstance(vector3OrEntry, ogre.Vector3):
+		elif isinstance(vector3OrEntry, Ogre.Vector3):
 			vector = vector3OrEntry
 		else:
 			raise showedError("BoundBox.intersect need a vector3 or Entry !!")

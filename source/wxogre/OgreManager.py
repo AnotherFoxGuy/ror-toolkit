@@ -1,7 +1,7 @@
 #Thomas Fischer 31/05/2007, thomas@thomasfischer.biz
 import sys
 import wx
-import ogre.renderer.OGRE as ogre
+import Ogre
 from ror.logger import log
 
 from ror.settingsManager import rorSettings
@@ -50,7 +50,7 @@ class OgreManager(object):
 		plugin = self.getConfigPath(pluginsfile)
 		ogrecfg = self.getConfigPath('ogre.cfg')
 		logfolder = rorSettings().concatToToolkitHomeFolder(["logs", "Ogre.log"], True)
-		self.ogreRoot = ogre.Root(plugin, ogrecfg, logfolder)
+		self.ogreRoot = Ogre.Root(plugin, ogrecfg, logfolder)
 
 		if not self.tryDetectRenderer():
 			self.ogreRoot.showConfigDialog()
@@ -82,7 +82,7 @@ class OgreManager(object):
 
 		for path in paths:
 			if os.path.exists(path):
-				print path
+				print(path)
 				return path
 
 		log().warning("\n"
@@ -92,7 +92,8 @@ class OgreManager(object):
 		#raise ogre.Exception(0, "can't locate the '%s' file" % filename, "")
 
 	def createRenderWindow(self, wxOgrewin, name, width, height, fullscreen, handle):
-		renderParameters = ogre.NameValuePairList()
+		#renderParameters = Ogre.NameValueMap
+		renderParameters = Ogre.NameValueMap()
 		#TODO: For some reason passing renderParameters causes the renderer not to start, passing Null is a work around
 		
 		if getPlatform() == 'windows':
@@ -117,14 +118,14 @@ class OgreManager(object):
 		for ogrewin in self.renderWindows.keys():
 			try:
 				ogrewin.OnFrameStarted()
-			except ogre.OgreException, e:
+			except Ogre.OgreException as e:
 				log().debug('fail to render targetwindow %s' % ogrewin.renderWindowName)
 				log().debug(str(e))
 				continue
 
 		try:
 			self.ogreRoot.renderOneFrame()
-		except ogre.OgreException, e:
+		except Ogre.OgreException as e:
 			log().error('## EXCEPTION ## OgreManager.RenderAll()')
 			log().error(str(e))
 			sys.exit("## EXCEPTION ## OgreManager.RenderAll()")
@@ -135,8 +136,8 @@ class OgreManager(object):
 			except:
 				continue
 
-	def createSceneManager(self, type):
-		return self.ogreRoot.createSceneManager(type, "SceneManager" + str(randomID()))
+	def createSceneManager(self):
+		return self.ogreRoot.createSceneManager()
 
 	def destroySceneManager(self, sm):
 		return self.ogreRoot.destroySceneManager(sm)

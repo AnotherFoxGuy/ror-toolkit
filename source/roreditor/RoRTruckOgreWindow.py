@@ -7,7 +7,7 @@
 # p3d movement with keyboard is currently sick
 
 import wx, os, os.path, wx.lib
-import ogre.renderer.OGRE as ogre
+import Ogre
 from ror.truckparser import *
 
 #from ror.camera import *
@@ -19,8 +19,7 @@ from ror.rorcommon import *
 from wxogre.OgreManager import *
 from wxogre.wxOgreWindow import *
 
-import ogre.renderer.OGRE as Ogre
-import ogre.io.OIS as OIS
+import Ogre
 from RoRVirtualKeys import *
 from RoRTerrainSelection import *
 from SelectionAxis import *
@@ -125,22 +124,22 @@ class RoRTruckOgreWindow(wxOgre3D):
 
 		#get the scenemanager
 		if self.sceneManager is None:
-			self.sceneManager = getOgreManager().createSceneManager(ogre.ST_GENERIC)
+			self.sceneManager = getOgreManager().createSceneManager()#Ogre.SceneManager.ST_GENERIC
 
 		# create a camera
 		self.camera = self.sceneManager.createCamera('Camera')
-		self.camera.lookAt(ogre.Vector3(0, 0, 0))
-		self.camera.setPosition(ogre.Vector3(3, 2, 5))
+		self.camera.lookAt(Ogre.Vector3(0, 0, 0))
+		self.camera.setPosition(Ogre.Vector3(3, 2, 5))
 		self.camera.nearClipDistance = 0.1
 		self.camera.setAutoAspectRatio(True)
 
 		# create the Viewport"
 		self.viewport = self.renderWindow.addViewport(self.camera, 0, 0.0, 0.0, 1.0, 1.0)
-		self.viewport.backgroundColour = ogre.ColourValue(0, 0, 0)
+		self.viewport.backgroundColour = Ogre.ColourValue(0, 0, 0)
 
 		#set some default values
 		self.sceneDetailIndex = 0
-		self.filtering = ogre.TFO_BILINEAR
+		self.filtering = Ogre.TFO_BILINEAR
 
 		# bind mouse and keyboard
 		self.Bind(wx.EVT_KEY_DOWN, self.onKeyDown)
@@ -150,7 +149,7 @@ class RoRTruckOgreWindow(wxOgre3D):
 		self.populateScene()
 		
 	def updateEntryPos(self, entry, tuplepos):
-		entry.ogrePosition = ogre.Vector3(tuplepos[0], tuplepos[1], tuplepos[2])
+		entry.ogrePosition = Ogre.Vector3(tuplepos[0], tuplepos[1], tuplepos[2])
 		
 	def selectingEntry(self, entry):
 		""" when an object is selected this event is triggered
@@ -201,10 +200,10 @@ class RoRTruckOgreWindow(wxOgre3D):
 			dist = pos0.distance(pos1)
 	
 			beam.node.setPosition(midPoint) #box node on world dimension
-			beam.node.lookAt(pos1, ogre.Node.TransformSpace.TS_WORLD, ogre.Vector3(0, 0, 1))
-			beam.node.lookAt(pos1, ogre.Node.TransformSpace.TS_WORLD, ogre.Vector3(1, 0, 0))
+			beam.node.lookAt(pos1, Ogre.Node.TransformSpace.TS_WORLD, Ogre.Vector3(0, 0, 1))
+			beam.node.lookAt(pos1, Ogre.Node.TransformSpace.TS_WORLD, Ogre.Vector3(1, 0, 0))
 			beam.node.setScale(RoRConstants.BEAM_DIAMETER, dist, RoRConstants.BEAM_DIAMETER)
-			beam.node.roll(ogre.Degree(90), ogre.Node.TransformSpace.TS_LOCAL)	
+			beam.node.roll(Ogre.Degree(90), Ogre.Node.TransformSpace.TS_LOCAL)	
 			
 	def createBasicObjects(self):
 		""" create environment scene:
@@ -440,22 +439,22 @@ class RoRTruckOgreWindow(wxOgre3D):
 			dot.lineTruck.id = self.nodeCount
 			dot.links = [] #beams attached to this node
 			mystr = str(node.id)
-			nNumber = dot.node.createChildSceneNode(str(randomID()), ogre.Vector3(0, RoRConstants.NODE_NUMBERS , 0))
+			nNumber = dot.node.createChildSceneNode(str(randomID()), Ogre.Vector3(0, RoRConstants.NODE_NUMBERS , 0))
 			number = {'0':'zero', '1':'one', '2':'two', '3':'trhee', '4':'four', '5':'five', '6':'six', '7':'seven', '8':'eight', '9':'nine'} 
 			for i in range(len(mystr)):
 				if number.has_key(mystr[i]):
-					subn = nNumber.createChildSceneNode(str(randomID()), ogre.Vector3(0.5 * i, 0, 0))
+					subn = nNumber.createChildSceneNode(str(randomID()), Ogre.Vector3(0.5 * i, 0, 0))
 					sube = self.smNewEntity(str(randomID()), "%s.mesh" % number[mystr[i]], CLYELLOW)
 					subn.attachObject(sube)
 			setattr(dot, 'nodeNumber', nNumber)
 			if self.isNodeAt(dot.ogrePosition):
-				dot.node.yaw(ogre.Degree(30))
+				dot.node.yaw(Ogre.Degree(30))
 			self.nodepos.append([dot.node.getPosition(), dot])
 			dot.allowTranslation = True
 			dot.OnPositionChanging.append(self.positionUpdating)
 			
 			return dot
-		except Exception, e:
+		except Exception as e:
 			log().debug("error creating nodes: " + str(e) + " / " + str(e.__doc__))
 #			raise
 
@@ -502,9 +501,9 @@ class RoRTruckOgreWindow(wxOgre3D):
 	def visibleOption(self, section, option=None, value=True):
 		""" check the 'options' property to make it visible or not 
 		"""
-		if isinstance(section, StringType):
+		if isinstance(section, str):
 			secList = [section]
-		elif isinstance(section, ListType):
+		elif isinstance(section, list):
 			secList = section
 		else: raise Exception('needs a list or string')
 		
@@ -667,7 +666,7 @@ class RoRTruckOgreWindow(wxOgre3D):
 			beam.links.append(first)
 			beam.links.append(second)
 			return beam
-		except Exception, e:
+		except Exception as e:
 			log().debug("error creating beam: " + str(e) + " / " + str(e.__doc__) + " for obj: " + obj.section + "  " + obj.getTruckLine())
 			raise
 		
@@ -685,10 +684,10 @@ class RoRTruckOgreWindow(wxOgre3D):
 		dist = pos0.distance(pos1)
 
 		entry.node.setPosition(midPoint) #box node on world dimension
-		entry.node.lookAt(pos1, ogre.Node.TransformSpace.TS_WORLD, ogre.Vector3(0, 0, 1))
-		entry.node.lookAt(pos1, ogre.Node.TransformSpace.TS_WORLD, ogre.Vector3(1, 0, 0))
+		entry.node.lookAt(pos1, Ogre.Node.TransformSpace.TS_WORLD, Ogre.Vector3(0, 0, 1))
+		entry.node.lookAt(pos1, Ogre.Node.TransformSpace.TS_WORLD, Ogre.Vector3(1, 0, 0))
 		entry.node.setScale(RoRConstants.BEAM_DIAMETER, dist, RoRConstants.BEAM_DIAMETER)
-		entry.node.roll(ogre.Degree(90), ogre.Node.TransformSpace.TS_LOCAL)	
+		entry.node.roll(Ogre.Degree(90), Ogre.Node.TransformSpace.TS_LOCAL)	
 		
 		
 		return entry
@@ -696,10 +695,10 @@ class RoRTruckOgreWindow(wxOgre3D):
 	def getNewMat(self, basematname):
 		uuid = randomID()
 		matname = uuid + "mat"
-		basemat = ogre.MaterialManager.getSingleton().getByName(basematname)
-		mat = ogre.MaterialManager.getSingleton().create(matname, basemat.getGroup())
+		basemat = Ogre.MaterialManager.getSingleton().getByName(basematname)
+		mat = Ogre.MaterialManager.getSingleton().create(matname, basemat.getGroup())
 		basemat.copyDetailsTo(mat)
-		#mat = ogre.MaterialManager.getSingleton().getByName(matname)
+		#mat = Ogre.MaterialManager.getSingleton().getByName(matname)
 		for i in range(0, 2):
 			self.randcolors[i] += 0.1
 			if self.randcolors[i] >= 1:
@@ -721,7 +720,7 @@ class RoRTruckOgreWindow(wxOgre3D):
 			shock = self.createBeam(f.ogrePosition, s.ogrePosition, True, self.getMaterial(obj))
 			return shock
 			
-		except Exception, e:
+		except Exception as e:
 			log().debug("error creating shock: " + str(e) + " / " + str(e.__doc__))
 			raise
 			
@@ -734,7 +733,7 @@ class RoRTruckOgreWindow(wxOgre3D):
 				if nodeobj.has_key('type'):
 					continue
 				node = nodeobj['data']
-				nodes[int(node[0])] = ogre.Vector3(float(node[1]), float(node[2]), float(node[3]))
+				nodes[int(node[0])] = Ogre.Vector3(float(node[1]), float(node[2]), float(node[3]))
 
 			# read in UVs then
 			uv = {}
@@ -750,7 +749,7 @@ class RoRTruckOgreWindow(wxOgre3D):
 
 			idstr = str(smgid)
 			sm = self.sceneManager.createManualObject("manualsmg" + idstr)
-			sm.begin(matname, ogre.RenderOperation.OT_TRIANGLE_LIST)
+			sm.begin(matname, Ogre.RenderOperation.OT_TRIANGLE_LIST)
 
 			for data in smg['cab']:
 				cab = data['data']
@@ -767,7 +766,7 @@ class RoRTruckOgreWindow(wxOgre3D):
 			sm.setCastShadows(False)
 
 			# set culling mode for that material
-			mat = ogre.MaterialManager.getSingleton().getByName(matname)
+			mat = Ogre.MaterialManager.getSingleton().getByName(matname)
 			if not mat is None:
 				mat.setCullingMode(Ogre.CullingMode.CULL_NONE)
 
@@ -775,7 +774,7 @@ class RoRTruckOgreWindow(wxOgre3D):
 			smnode.attachObject(sm)
 
 			self.submeshs[smgid] = [smnode, smgid, smg, sm]
-		except Exception, e:
+		except Exception as e:
 			log().debug("error creating submesh-group: " + str(e) + " / " + str(e.__doc__))
 			
 	def makeSimpleBox(self, size, pos, orient):
@@ -796,19 +795,19 @@ class RoRTruckOgreWindow(wxOgre3D):
 
 
 	def populateScene(self):
-#		self.sceneManager.AmbientLight = ogre.ColourValue(0.7, 0.7, 0.7)
+#		self.sceneManager.AmbientLight = Ogre.ColourValue(0.7, 0.7, 0.7)
 
 		fadeColour = (0.1, 0.1, 0.1)
-#		self.sceneManager.setFog(ogre.FOG_EXP, ogre.ColourValue.White, 0.0002)
-		#self.sceneManager.setFog(ogre.FOG_LINEAR, fadeColour, 0.001, 5000.0, 10000.0)
+#		self.sceneManager.setFog(Ogre.FOG_EXP, Ogre.ColourValue.White, 0.0002)
+		#self.sceneManager.setFog(Ogre.FOG_LINEAR, fadeColour, 0.001, 5000.0, 10000.0)
 		self.renderWindow.getViewport(0).BackgroundColour = fadeColour
 
 		self.sceneManager.AmbientLight = color('BACKGROUND')
-		self.sceneManager.setShadowTechnique(ogre.ShadowTechnique.SHADOWTYPE_STENCIL_ADDITIVE);
+		self.sceneManager.setShadowTechnique(Ogre.ShadowTechnique.SHADOWTYPE_STENCIL_ADDITIVE);
 		self.sceneManager.setSkyDome(True, 'mysimple/truckEditorSky', 4.0, 8.0)
 
 		self.MainLight = self.sceneManager.createLight('MainLight')
-		self.MainLight.setPosition (ogre.Vector3(20, 80, 130))
+		self.MainLight.setPosition (Ogre.Vector3(20, 80, 130))
 		#create ray template
 		self.raySceneQuery = self.sceneManager.createRayQuery(Ogre.Ray());
 
@@ -847,15 +846,15 @@ class RoRTruckOgreWindow(wxOgre3D):
 	
 	def createGroundPlane(self):
 		return
-		plane = ogre.Plane()
-		plane.normal = ogre.Vector3(0, 1, 0)
+		plane = Ogre.Plane()
+		plane.normal = Ogre.Vector3(0, 1, 0)
 		plane.d = 2
 		planesize = 200
 		# see http://www.ogre3d.org/docs/api/html/classOgre_1_1MeshManager.html#Ogre_1_1MeshManagera5
-		mesh = ogre.MeshManager.getSingleton().createPlane('GroundPlane', "General", plane, planesize, planesize,
-													20, 20, True, 1, 50.0, 50.0, ogre.Vector3(0, 0, 1),
-													ogre.HardwareBuffer.HBU_STATIC_WRITE_ONLY,
-													ogre.HardwareBuffer.HBU_STATIC_WRITE_ONLY,
+		mesh = Ogre.MeshManager.getSingleton().createPlane('GroundPlane', "General", plane, planesize, planesize,
+													20, 20, True, 1, 50.0, 50.0, Ogre.Vector3(0, 0, 1),
+													Ogre.HardwareBuffer.HBU_STATIC_WRITE_ONLY,
+													Ogre.HardwareBuffer.HBU_STATIC_WRITE_ONLY,
 													True, True)
 		entity = self.sceneManager.createEntity('GroundPlaneEntity', 'GroundPlane')
 		entity.setMaterialName('tracks / IngameEditor / Grid1')
@@ -963,7 +962,7 @@ class RoRTruckOgreWindow(wxOgre3D):
 			#self.uvFrame = UVFrame(self, wx.ID_ANY, "")
 			#self.uvFrame.setTree(tree)
 			#self.uvFrame.Show()
-		except Exception, e:
+		except Exception as e:
 			log().debug("error creating 3D objects from Lines of section: " + str(e) + " / " + str(e.__doc__))
 			raise
 		try:
@@ -991,14 +990,14 @@ class RoRTruckOgreWindow(wxOgre3D):
 		raxis = axis
 		if obj.side != 'r': #reverse rim is true
 			raxis = -raxis
-		p = ogre.Vector3(0, 0, 0)
+		p = Ogre.Vector3(0, 0, 0)
 		snode = self.parser.findNode(obj.rigidity_node)
 		if snode is not None: p = snode.entry.ogrePosition 
 		ray = p - enode1.ogrePosition
 		onormal = raxis.crossProduct(ray)
 		onormal.normalise()
 		ray = raxis.crossProduct(onormal)
-		rim.ogreRotation = ogre.Quaternion(raxis, onormal, ray) 
+		rim.ogreRotation = Ogre.Quaternion(raxis, onormal, ray) 
 		
 	def addWheel(self, obj):
 		""" 
@@ -1014,12 +1013,12 @@ class RoRTruckOgreWindow(wxOgre3D):
 		axis = enode2.ogrePosition - enode1.ogrePosition
 		axis.normalise()
 		rayvec = axis.perpendicular() * obj.radius
-		rayrot = ogre.Quaternion(ogre.Degree(-360.0 / float(obj.raycount * 2)), axis)
+		rayrot = Ogre.Quaternion(Ogre.Degree(-360.0 / float(obj.raycount * 2)), axis)
 		wheelnodes = []
 		for i in range(0, obj.raycount):
 			raypoint = enode1.ogrePosition + rayvec
 			rayvec = rayrot * rayvec
-			print "raypoint ", raypoint.x, " " , raypoint.y, " ", raypoint.z
+			print("raypoint ", raypoint.x, " ", raypoint.y, " ", raypoint.z)
 			wheelnodes.append(self.createNodeFrom(raypoint.x, 	raypoint.y, raypoint.z))
 
 			raypoint = enode2.ogrePosition + rayvec
@@ -1044,12 +1043,12 @@ class RoRTruckOgreWindow(wxOgre3D):
 		for x in range(len(sections)):
 			try:
 				if self.tree.has_key(sections[x]):
-					print "generating line for " + sections[x]
+					print("generating line for " + sections[x])
 					lines += '\n % s\n' % sections[x]
 					for l in range(len(self.tree[sections[x]])):
 						lines += self.tree[sections[x]][l]['obj'].getTruckLine(self.parser) + '\n'
-			except Exception, e:
-				print "error with section %s" % sections[x], str(e) + " / " + str(e.__doc__)
+			except Exception as e:
+				print("error with section %s" % sections[x], str(e) + " / " + str(e.__doc__))
 				continue
 		return lines
 	
@@ -1071,7 +1070,7 @@ class RoRTruckOgreWindow(wxOgre3D):
 		""" update position and rotation of the prop
 		It also create the matrix3 of axes
 		"""
-		normal = ogre.Vector3(0, 0, 0)
+		normal = Ogre.Vector3(0, 0, 0)
 		refpos = self.parser.findNode(obj.ref_node).entry.ogrePosition
 		xpos = self.parser.findNode(obj.x_node).entry.ogrePosition
 		ypos = self.parser.findNode(obj.y_node).entry.ogrePosition
@@ -1087,9 +1086,9 @@ class RoRTruckOgreWindow(wxOgre3D):
 		refx.normalise()
 		refy = refx.crossProduct(normal)
 		mesh.node.setPosition(mposition + normal * obj.offsetz)
-		q = ogre.Quaternion(ogre.Degree(obj.rotz), ogre.Vector3(0, 0, 1)) * ogre.Quaternion(ogre.Degree(obj.roty), ogre.Vector3(0, 1, 0)) * ogre.Quaternion(ogre.Degree(obj.rotx), ogre.Vector3(1, 0, 0))
-		#	 ogre.Quaternion(xaxis, yaxis, zaxis) yes !!! z and y vectors are interchanged
-		ori = ogre.Quaternion(refx, normal, refy) * q
+		q = Ogre.Quaternion(Ogre.Degree(obj.rotz), Ogre.Vector3(0, 0, 1)) * Ogre.Quaternion(Ogre.Degree(obj.roty), Ogre.Vector3(0, 1, 0)) * Ogre.Quaternion(Ogre.Degree(obj.rotx), Ogre.Vector3(1, 0, 0))
+		#	 Ogre.Quaternion(xaxis, yaxis, zaxis) yes !!! z and y vectors are interchanged
+		ori = Ogre.Quaternion(refx, normal, refy) * q
 		mesh.node.setOrientation(ori)
 #		mesh.axes = 
 #		print "original degrees %.3f,%.3f,%.3f, " % (obj.rotx, obj.roty, obj.rotz)
@@ -1112,21 +1111,21 @@ class RoRTruckOgreWindow(wxOgre3D):
 #		if event.ShiftDown():
 		forcex /= 10
 		LockSteps = event.AltDown()
-		forceDegree = ogre.Degree(forcex).valueRadians()
+		forceDegree = Ogre.Degree(forcex).valueRadians()
 		
 		if self.selected.axis.arrow.getName() == self.selected.axis.arrowNames[0]:
-			 self.translateSelected(ogre.Vector3(forcex, 0, 0), LockSteps)
+			 self.translateSelected(Ogre.Vector3(forcex, 0, 0), LockSteps)
 		elif self.selected.axis.arrow.getName() == self.selected.axis.arrowNames[1]:
-			self.translateSelected(ogre.Vector3(0, 0, forcex), LockSteps)
+			self.translateSelected(Ogre.Vector3(0, 0, forcex), LockSteps)
 		elif self.selected.axis.arrow.getName() == self.selected.axis.arrowNames[2]:
-			self.translateSelected(ogre.Vector3(0, forcex, 0), LockSteps)
+			self.translateSelected(Ogre.Vector3(0, forcex, 0), LockSteps)
 		
 		elif self.selected.axis.arrow.getName() == self.selected.axis.arrowNames[3]:
-			self.rotateSelected(ogre.Vector3(1, 0, 0), forceDegree, LockSteps)
+			self.rotateSelected(Ogre.Vector3(1, 0, 0), forceDegree, LockSteps)
 		elif self.selected.axis.arrow.getName() == self.selected.axis.arrowNames[4]:
-			self.rotateSelected(ogre.Vector3(0, 1, 0), forceDegree, LockSteps)
+			self.rotateSelected(Ogre.Vector3(0, 1, 0), forceDegree, LockSteps)
 		elif self.selected.axis.arrow.getName() == self.selected.axis.arrowNames[5]:
-			self.rotateSelected(ogre.Vector3(0, 0, 1), forceDegree, LockSteps)
+			self.rotateSelected(Ogre.Vector3(0, 0, 1), forceDegree, LockSteps)
 
 	def translateSelected(self, vector, steps=False,
 		doc=""" vector is an offset to translate to
@@ -1159,7 +1158,7 @@ class RoRTruckOgreWindow(wxOgre3D):
 		if not self.selected.entry:
 			return
 		self.rotatingEntry = True
-		self.selected.entry.node.rotate(axis, amount, relativeTo=ogre.Node.TransformSpace.TS_LOCAL)
+		self.selected.entry.node.rotate(axis, amount, relativeTo=Ogre.Node.TransformSpace.TS_LOCAL)
 		newrot = self.selected.entry.node._getDerivedOrientation()
 #		self.selected.entry.node.setOrientation(newrot)		
 #		self.addObjectToHistory(self.selected.entry)
@@ -1202,14 +1201,14 @@ class RoRTruckOgreWindow(wxOgre3D):
 				if event.ShiftDown():
 					zfactor = 0.01
 				zoom = zfactor * -event.GetWheelRotation()
-				self.camera.moveRelative(ogre.Vector3(0, 0, zoom))
+				self.camera.moveRelative(Ogre.Vector3(0, 0, zoom))
 			elif event.Dragging() and event.MiddleIsDown(): 
 				self.wasDragging = True
 				x, y = event.GetPosition()
 				dx = self.StartDragX - x
 				dy = self.StartDragY - y
 				self.StartDragX, self.StartDragY = x, y
-				offset = ogre.Vector3(dx / 50.0, -dy / 50.0, 0)
+				offset = Ogre.Vector3(dx / 50.0, -dy / 50.0, 0)
 				
 				if self.selected.entry is not None:
 					self.camera.setAutoTracking(True, self.selected.entry.node)
@@ -1225,7 +1224,7 @@ class RoRTruckOgreWindow(wxOgre3D):
 				self.camera.moveRelative(offset)
 				newdist = self.camera.getPosition().distance(n)
 				if newdist != dist:
-					self.camera.moveRelative(ogre.Vector3(0, 0, dist - newdist))
+					self.camera.moveRelative(Ogre.Vector3(0, 0, dist - newdist))
 			elif event.MiddleUp():
 				self.autoTracking = False
 				self.wasDragging = False
@@ -1237,8 +1236,8 @@ class RoRTruckOgreWindow(wxOgre3D):
 				dy = self.StartDragY - y
 				self.StartDragX, self.StartDragY = x, y
 				self.autoTracking = False
-				self.camera.yaw(ogre.Degree(-dx / 3.0))
-				self.camera.pitch(ogre.Degree(-dy / 3.0))
+				self.camera.yaw(Ogre.Degree(-dx / 3.0))
+				self.camera.pitch(Ogre.Degree(-dy / 3.0))
 				
 			elif event.RightUp() and not self.wasDragging:
 				# move p3d to the pointing entry
@@ -1344,7 +1343,7 @@ class RoRTruckOgreWindow(wxOgre3D):
 			self.log(" data position is:", [data.x, data.y, data.z]) 
 			self.log(" vector3", vector)
 		"""
-		if isinstance(param, ogre.Vector3):
+		if isinstance(param, Ogre.Vector3):
 			param = [param.x, param.y, param.z]
 			
 		log().info(text.ljust(17) + " " + " ".join(["%.6f" % x for x in param]))
@@ -1384,7 +1383,7 @@ class RoRTruckOgreWindow(wxOgre3D):
 			self.createBeamFrom(self.lastnodes[0], self.lastnodes[2], 'v')
 			log().info("creating beam from nodes %d to %d" % (self.lastnodes[1], self.lastnodes[3]))
 			self.createBeamFrom(self.lastnodes[1], self.lastnodes[3], 'v')
-#				self.selected.entry.node.roll(ogre.Degree(90), ogre.Node.TransformSpace.TS_LOCAL)
+#				self.selected.entry.node.roll(Ogre.Degree(90), Ogre.Node.TransformSpace.TS_LOCAL)
 #				log().debug('roll 90 (X)')
 	def selectByNodes(self, dummy):
 			# select by nodes
@@ -1416,17 +1415,17 @@ class RoRTruckOgreWindow(wxOgre3D):
 		if mode and not event.ControlDown():
 			translate = None
 			if event.m_keyCode == WXK_D: 
-				translate = ogre.Vector3(d, 0, 0)
+				translate = Ogre.Vector3(d, 0, 0)
 			elif event.m_keyCode == WXK_A:
-				translate = ogre.Vector3(-d, 0, 0)
+				translate = Ogre.Vector3(-d, 0, 0)
 			elif event.m_keyCode == WXK_W:
-				translate = ogre.Vector3(0, 0, -d)
+				translate = Ogre.Vector3(0, 0, -d)
 			elif event.m_keyCode == WXK_S:
-				translate = ogre.Vector3(0, 0, d)
+				translate = Ogre.Vector3(0, 0, d)
 			elif event.m_keyCode == WXK_V:
-				translate = ogre.Vector3(0, -d, 0)
+				translate = Ogre.Vector3(0, -d, 0)
 			elif event.m_keyCode == WXK_F:
-				translate = ogre.Vector3(0, d, 0)
+				translate = Ogre.Vector3(0, d, 0)
 			elif event.m_keyCode == WXK_P:
 				if not self.p3d.node is None:
 					self.log("p3d at ", self.p3d.node.getPosition())
@@ -1435,12 +1434,12 @@ class RoRTruckOgreWindow(wxOgre3D):
 					#trying to move pointer from camera point of view
 					
 					# camera orientation without Yaw, so the rotation is on XZ plane
-#					q = ogre.Quaternion(self.camera.getOrientation().getPitch(), ogre.Vector3(0, 0, 1)) * ogre.Quaternion(self.camera.getOrientation().getRoll(), ogre.Vector3(0, 1, 0))
-				q = ogre.Quaternion(self.camera.getOrientation().getYaw(), ogre.Vector3(0, 1, 0))
+#					q = Ogre.Quaternion(self.camera.getOrientation().getPitch(), Ogre.Vector3(0, 0, 1)) * Ogre.Quaternion(self.camera.getOrientation().getRoll(), Ogre.Vector3(0, 1, 0))
+				q = Ogre.Quaternion(self.camera.getOrientation().getYaw(), Ogre.Vector3(0, 1, 0))
 				oldp = self.p3d.node.getPosition()
 				angle = self.camera.getOrientation().getYaw().valueDegrees()
 				# I hate this following code :s
-				oldtrans = ogre.Vector3(translate.x, translate.y, translate.z)
+				oldtrans = Ogre.Vector3(translate.x, translate.y, translate.z)
 				translate = self.p3d.node.getPosition() + q * translate
 				if (-90 < angle and angle < 90) and (event.m_keyCode == WXK_D or event.m_keyCode == WXK_A):
 					translate.z = oldtrans.z
@@ -1461,21 +1460,21 @@ class RoRTruckOgreWindow(wxOgre3D):
 				self.p3d.inform()
 				self.positionUpdating(None)
 			if event.m_keyCode == WXK_T: 
-				if self.filtering == ogre.TFO_BILINEAR:
-					self.filtering = ogre.TFO_TRILINEAR
+				if self.filtering == Ogre.TFO_BILINEAR:
+					self.filtering = Ogre.TFO_TRILINEAR
 					self.Aniso = 1
-				elif self.filtering == ogre.TFO_TRILINEAR:
-					self.filtering = ogre.TFO_ANISOTROPIC
+				elif self.filtering == Ogre.TFO_TRILINEAR:
+					self.filtering = Ogre.TFO_ANISOTROPIC
 					self.Aniso = 8
 				else:
-					self.filtering = ogre.TFO_BILINEAR
+					self.filtering = Ogre.TFO_BILINEAR
 					self.Aniso = 1
-				ogre.MaterialManager.getSingleton().setDefaultTextureFiltering(self.filtering)
-				ogre.MaterialManager.getSingleton().setDefaultAnisotropy(self.Aniso)
+				Ogre.MaterialManager.getSingleton().setDefaultTextureFiltering(self.filtering)
+				Ogre.MaterialManager.getSingleton().setDefaultAnisotropy(self.Aniso)
 			elif event.m_keyCode == WXK_R and not event.ControlDown(): # 82 = R
-				detailsLevel = [ ogre.PM_SOLID,
-								ogre.PM_WIREFRAME,
-								ogre.PM_POINTS ]
+				detailsLevel = [ Ogre.PM_SOLID,
+								Ogre.PM_WIREFRAME,
+								Ogre.PM_POINTS ]
 				self.sceneDetailIndex = (self.sceneDetailIndex + 1) % len(detailsLevel)
 				self.camera.polygonMode = detailsLevel[self.sceneDetailIndex]
 			elif event.m_keyCode == WXK_S and event.ControlDown():
@@ -1491,17 +1490,17 @@ class RoRTruckOgreWindow(wxOgre3D):
 				showInfo("Truck summary", msg)
 #		else:
 #			if event.m_keyCode == WXK_D: # A, wx.WXK_LEFT:
-#				self.camera.moveRelative(ogre.Vector3(d, 0, 0))
+#				self.camera.moveRelative(Ogre.Vector3(d, 0, 0))
 #			elif event.m_keyCode == WXK_A: # D, wx.WXK_RIGHT:
-#				self.camera.moveRelative(ogre.Vector3(-d, 0, 0))
+#				self.camera.moveRelative(Ogre.Vector3(-d, 0, 0))
 #			elif event.m_keyCode == WXK_W: # W ,wx.WXK_UP:
-#				self.camera.moveRelative(ogre.Vector3(0, 0, -d))
+#				self.camera.moveRelative(Ogre.Vector3(0, 0, -d))
 #			elif event.m_keyCode == WXK_S: # S, wx.WXK_DOWN:
-#				self.camera.moveRelative(ogre.Vector3(0, 0, d))
+#				self.camera.moveRelative(Ogre.Vector3(0, 0, d))
 #			elif event.m_keyCode == WXK_V:
-#				self.camera.moveRelative(ogre.Vector3(0, d, 0))
+#				self.camera.moveRelative(Ogre.Vector3(0, d, 0))
 #			elif event.m_keyCode == WXK_F:
-#				self.camera.moveRelative(ogre.Vector3(0, -d, 0))
+#				self.camera.moveRelative(Ogre.Vector3(0, -d, 0))
 
 
 
@@ -1546,11 +1545,11 @@ class RoRTruckOgreWindow(wxOgre3D):
 			self.crisscross()
 		elif event.m_keyCode == WXK_Y:
 			if self.selected.entry is not None:
-				self.selected.entry.node.yaw(ogre.Degree(30), ogre.Node.TransformSpace.TS_LOCAL)
+				self.selected.entry.node.yaw(Ogre.Degree(30), Ogre.Node.TransformSpace.TS_LOCAL)
 				log().debug('yaw 30 (Y)')
 		elif event.m_keyCode == WXK_Z:
 			if self.selected.entry is not None:
-				self.selected.entry.node.pitch(ogre.Degree(30), ogre.Node.TransformSpace.TS_LOCAL)
+				self.selected.entry.node.pitch(Ogre.Degree(30), Ogre.Node.TransformSpace.TS_LOCAL)
 				log().debug('pitch 30 (Z)')
 		elif event.m_keyCode == WXK_E and event.ControlDown(): 
 			# save and reload
@@ -1580,7 +1579,7 @@ class RoRTruckOgreWindow(wxOgre3D):
 			for e in self.entries.keys():
 				if hasattr(self.entries[e], 'lineTruck'):
 					if self.entries[e].lineTruck.section in BEAMS: 
-						self.entries[e].node.setScale(ogre.Vector3(RoRConstants.BEAM_DIAMETER, self.entries[e].node.getScale().y , RoRConstants.BEAM_DIAMETER))
+						self.entries[e].node.setScale(Ogre.Vector3(RoRConstants.BEAM_DIAMETER, self.entries[e].node.getScale().y , RoRConstants.BEAM_DIAMETER))
 					
 					
 		elif event.m_keyCode == wx.WXK_NUMPAD_SUBTRACT and event.AltDown():
@@ -1589,7 +1588,7 @@ class RoRTruckOgreWindow(wxOgre3D):
 			for e in self.entries.keys():
 				if hasattr(self.entries[e], 'lineTruck'):
 					if self.entries[e].lineTruck.section in BEAMS:
-						self.entries[e].node.setScale(ogre.Vector3(RoRConstants.BEAM_DIAMETER, self.entries[e].node.getScale().y, RoRConstants.BEAM_DIAMETER))
+						self.entries[e].node.setScale(Ogre.Vector3(RoRConstants.BEAM_DIAMETER, self.entries[e].node.getScale().y, RoRConstants.BEAM_DIAMETER))
 		elif event.m_keyCode == wx.WXK_NUMPAD_ADD:
 			#ball node size increase
 			sphere = event.ControlDown()
@@ -1597,8 +1596,8 @@ class RoRTruckOgreWindow(wxOgre3D):
 			else: RoRConstants.NODE_NUMBERS *= 1.1
 			for e in self.entries.keys():
 				if hasattr(self.entries[e], 'nodeNumber'):
-					if sphere: self.entries[e].node.setScale(ogre.Vector3(RoRConstants.DOT_SCALE, RoRConstants.DOT_SCALE, RoRConstants.DOT_SCALE))
-					else: self.entries[e].nodeNumber.setScale(ogre.Vector3(RoRConstants.NODE_NUMBERS, RoRConstants.NODE_NUMBERS, RoRConstants.NODE_NUMBERS))
+					if sphere: self.entries[e].node.setScale(Ogre.Vector3(RoRConstants.DOT_SCALE, RoRConstants.DOT_SCALE, RoRConstants.DOT_SCALE))
+					else: self.entries[e].nodeNumber.setScale(Ogre.Vector3(RoRConstants.NODE_NUMBERS, RoRConstants.NODE_NUMBERS, RoRConstants.NODE_NUMBERS))
 					
 					
 		elif event.m_keyCode == wx.WXK_NUMPAD_SUBTRACT:
@@ -1608,8 +1607,8 @@ class RoRTruckOgreWindow(wxOgre3D):
 			else: RoRConstants.NODE_NUMBERS *= 0.9
 			for e in self.entries.keys():
 				if hasattr(self.entries[e], 'nodeNumber'):
-					if sphere: self.entries[e].node.setScale(ogre.Vector3(RoRConstants.DOT_SCALE, RoRConstants.DOT_SCALE, RoRConstants.DOT_SCALE))
-					else: self.entries[e].nodeNumber.setScale(ogre.Vector3(RoRConstants.NODE_NUMBERS, RoRConstants.NODE_NUMBERS, RoRConstants.NODE_NUMBERS))
+					if sphere: self.entries[e].node.setScale(Ogre.Vector3(RoRConstants.DOT_SCALE, RoRConstants.DOT_SCALE, RoRConstants.DOT_SCALE))
+					else: self.entries[e].nodeNumber.setScale(Ogre.Vector3(RoRConstants.NODE_NUMBERS, RoRConstants.NODE_NUMBERS, RoRConstants.NODE_NUMBERS))
 		elif event.m_keyCode == WXK_H and event.AltDown():
 			for e in self.entries:
 				self.entries[e].visible = True
@@ -1629,16 +1628,16 @@ class RoRTruckOgreWindow(wxOgre3D):
 		""" make a road look to the position of pos
 		pos maybe vector3 or tuple
 		"""
-		if isinstance(pos, TupleType):
-			vector3 = ogre.Vector3(pos[0], pos[1], pos[2])
-		elif isinstance(pos, ogre.Vector3):
+		if isinstance(pos, tuple):
+			vector3 = Ogre.Vector3(pos[0], pos[1], pos[2])
+		elif isinstance(pos, Ogre.Vector3):
 			vector3 = pos
 		else:
 			raise showedError("TerrainentryClass.rorLookAt need a vector3 or tuple!!")
 		
 		node.resetOrientation()
-#		node.lookAt(vector3, ogre.Node.TransformSpace.TS_WORLD, ogre.Vector3(0, 1, 0))
-		node.lookAt(vector3, ogre.Node.TransformSpace.TS_WORLD, ogre.Vector3(0, 0, 1))
+#		node.lookAt(vector3, Ogre.Node.TransformSpace.TS_WORLD, Ogre.Vector3(0, 1, 0))
+		node.lookAt(vector3, Ogre.Node.TransformSpace.TS_WORLD, Ogre.Vector3(0, 0, 1))
 		
 	def newEntry(self, bAssignEvent=False, bAutouuid=False): 
 		""" bAssignEvent -> Assign ogreWindow property
@@ -1695,7 +1694,7 @@ class RoRTruckOgreWindow(wxOgre3D):
 		return p
 	
 	def Vector3(self, v):
-		return ogre.Vector3(v.x, v.y, v.z)
+		return Ogre.Vector3(v.x, v.y, v.z)
 	
 	def specialGetRotationTo(self, src, dest):
 		""" based on Beam.cpp::specialGetRotationTo"""
@@ -1706,7 +1705,7 @@ class RoRTruckOgreWindow(wxOgre3D):
 		v1 = self.Vector3(dest)
 		v0.normalise()
 		v1.normalise()
-		q = ogre.Quaternion(1, 0, 0, 0)
+		q = Ogre.Quaternion(1, 0, 0, 0)
 
 		c = self.Vector3(v0.crossProduct(v1))
 
@@ -1715,17 +1714,17 @@ class RoRTruckOgreWindow(wxOgre3D):
 		d = v0.dotProduct(v1)
 		#// If dot == 1, vectors are the same
 		if (d >= 1.0):
-			return ogre.Quaternion(1, 0 , 0 , 0)
+			return Ogre.Quaternion(1, 0 , 0 , 0)
 		if d < -0.999999 :
 			#// Generate an axis
-			axis = ogre.Vector3(1, 0, 0).crossProduct(src)
+			axis = Ogre.Vector3(1, 0, 0).crossProduct(src)
 			if axis.isZeroLength(): #// pick another if colinear
-				axis = ogre.Vector3(0, 1, 0).crossProduct(src)
+				axis = Ogre.Vector3(0, 1, 0).crossProduct(src)
 			axis.normalise();
-			q.FromAngleAxis(Radian(pi), axis);
+			q.FromAngleAxis(Ogre.Radian(pi), axis);
 		else:
 			s = sqrt((1 + d) * 2);
-			if s == 0 : return ogre.Quaternion(1, 0, 0, 0)
+			if s == 0 : return Ogre.Quaternion(1, 0, 0, 0)
 			invs = 1 / s;
 
 
@@ -1740,8 +1739,8 @@ class RoRTruckOgreWindow(wxOgre3D):
 		width = self.renderWindow.getWidth()
 		height = self.renderWindow.getHeight()
 		mouseRay = self.camera.getCameraToViewportRay((x / float(width)), (y / float(height)));
-#		ray = ogre.Ray(ogre.Vector3(0, 0,0), ogre.Vector3(0,-1,0)) 
-		Q = self.sceneManager.createRayQuery(ogre.Ray());
+#		ray = Ogre.Ray(Ogre.Vector3(0, 0,0), Ogre.Vector3(0,-1,0)) 
+		Q = self.sceneManager.createRayQuery(Ogre.Ray());
 		self.renderWindow.update()
 		Q.setSortByDistance(True)
 		#Perform the scene query

@@ -1,4 +1,3 @@
-#!/bin/env python
 # Thomas Fischer 16/05/2007 thomas (at) thomasfischer.biz
 # Lepes update parser from latest wiki webpage (truck definition file latest update: 28 feb 2010
 
@@ -8,9 +7,8 @@
 import sys, os, os.path, tempfile, pickle
 
 #import inspect
-from string import capwords, lower
+from string import capwords
 from types import *
-from compiler.ast import Assert
 from math import modf
 from roreditor.RoRConstants import *
 from ror.logger import log
@@ -1325,7 +1323,7 @@ class rorparser(object):
 						newargs = args[0:cont]
 						newargs.append(newparam) 
 						args = newargs
-						print "args with restofline :", args
+						print("args with restofline :", args)
 						break
 			
 				if argumentsection[cont].has_key('splitspaces'):
@@ -1459,8 +1457,8 @@ class rorparser(object):
 					
 					argumentsection = self.sections[actualsection]
 					argumentsection_str = "section"
-			except Exception, e:
-				print str(e)
+			except Exception as e:
+				print(str(e))
 				continue
 			argumenttree = []
 			args = self.splitArgumentWithSpaces(args, argumentsection) 
@@ -1535,11 +1533,11 @@ class rorparser(object):
 						elif argumentsection[argnum]['type'] == 'float': arg = float(arg)
 						argumenttree.append(arg)
 						continue
-				except Exception, e:
+				except Exception as e:
 					self.errorMsg(filename, lineno, actualsection, argumentsection_str,
 								argumentsection[argnum]['name'], line, "invalid type of argument, or unkown command")
-					print "argnum was %d, args are-> %s" % (argnum, " | ".join(args))
-					print str(e)
+					print("argnum was %d, args are-> %s" % (argnum, " | ".join(args)))
+					print(str(e))
 					break
 			if self.errorReported : self.errorReported = False
 			else:
@@ -1567,8 +1565,9 @@ class rorparser(object):
 			continue
 		#if len(self.errorCount) > 0:
 		#	showInfo('total errors', 'errors interpreting this file: %d\n\n%s' % (len(self.errorCount), '\n'.join(self.errorCount)))
-		print 'errors interpreting this file: %d' % len(self.errorCount)
-		#self.checkNodes()
+		print('errors interpreting this file: %d' % len(self.errorCount))
+
+	#self.checkNodes()
 		#self.checkForDoubleNodes()
 		#self.checkForDoubleBeams()
 	def getSummary(self):
@@ -1685,7 +1684,7 @@ class rorparser(object):
 			pickle.dump(self.tree, fh)
 			fh.close()
 			log().info("saving successfull!")
-		except Exception, err:
+		except Exception as err:
 			log().error("error while saving settings")
 			log().error(str(err))
 

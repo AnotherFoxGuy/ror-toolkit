@@ -2,7 +2,7 @@
 import sys
 import wx
 import math
-import ogre.renderer.OGRE as ogre 
+import Ogre 
 from wxogre.OgreManager import *
 from wxogre.wxOgreWindow import *
 from random import random
@@ -49,16 +49,18 @@ class RoRTerrainSelectedObjectTopOgreWindow(wxOgreWindow):
 
     def SceneInitialisation(self):
         # create a camera
-        self.camera = self.sceneManager.createCamera('SharedCamera' + self.rand) 
-        
-        self.camera.setProjectionType(ogre.ProjectionType.PT_ORTHOGRAPHIC)
-        self.camera.setNearClipDistance(5)
-        self.camera.setPosition(ogre.Vector3(0.1,-100,0))
-        self.camera.lookAt(ogre.Vector3(0,0,0))
-        #self.camera.setAutoAspectRatio(True) 
+        self.camera = self.sceneManager.createCamera(str(randomID()) + 'Camera')
+        self.camera_sn = self.sceneManager.getRootSceneNode().createChildSceneNode()
+        self.camera_sn.attachObject(self.camera)
+        self.camera_sn.lookAt(Ogre.Vector3(0, 0, 0), Ogre.Node.TS_WORLD)
+        self.camera_sn.setPosition(Ogre.Vector3(0, 0, 100))
+        self.camera.nearClipDistance = 1
+        self.camera.setAutoAspectRatio(True)
 
         # create the Viewport"
-        self.viewport = self.renderWindow.addViewport(self.camera, 0, 0.0, 0.0, 1.0, 1.0) 
+        self.viewport = self.renderWindow.addViewport(self.camera, 0, 0.0, 0.0, 1.0, 1.0)
+        self.viewport.backgroundColour = Ogre.ColourValue(0, 0, 0)
+        self.viewport.setOverlaysEnabled(False)  # disable terrain Editor overlays on this viewport
         self.viewport.backgroundColour = ogre.ColourValue(0, 0, 0) 
         self.terrainRaySceneQuery = self.sceneManager.createRayQuery(ogre.Ray());
 

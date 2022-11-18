@@ -6,8 +6,6 @@ from ShapedControls import ShapedWindow
 import wx
 import wx.aui
 
-import cStringIO
-
 ID_ChangeMainMeshTrans = wx.NewId()
 ID_ChangeMainMeshVisibility = wx.NewId()
 ID_ChangeNormalBoxesVisibility = wx.NewId()
@@ -24,9 +22,9 @@ class OdefViewPanel(ShapedWindow):
 		grid.SetEmptyCellSize(wx.Size(110, 3))
 		
 		# Window padding - sides
-		spacer_size = (6,6)
-		grid.AddSpacer(spacer_size, (0,0)) # Row 0, Col 0
-		grid.AddSpacer(spacer_size, (0,2)) # Row 0, Col 2
+		#spacer_size = (6,6)
+		#grid.AddSpacer(spacer_size, (0,0)) # Row 0, Col 0
+		#grid.AddSpacer(spacer_size, (0,2)) # Row 0, Col 2
 		
 		r = 1
 		c = 1
@@ -73,7 +71,7 @@ class OdefViewPanel(ShapedWindow):
 		
 		# Window padding - bottom
 		r += 1
-		grid.AddSpacer(spacer_size, (r, c))
+		#grid.AddSpacer(spacer_size, (r, c))
 
 		self.SetSizerAndFit(grid)
 		self.resetControls()
@@ -104,7 +102,7 @@ class OdefViewPanel(ShapedWindow):
 				content = f.read()
 				f.close()
 				return content
-			except Exception, err:
+			except Exception as err:
 				log().error(str(err))
 				return None
 		else:

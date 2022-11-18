@@ -1,0 +1,2 @@
+ogre-python==13.5.2
+wxPython==4.2.0

@@ -1,9 +1,8 @@
 import wx, os, os.path, copy
-import cPickle
+
 import errno
 from time import  *
-import ogre.renderer.OGRE as ogre 
-import ogre.io.OIS as OIS
+import Ogre
 from math import acos
 from wxogre.OgreManager import *
 from wxogre.wxOgreWindow import *
@@ -79,8 +78,8 @@ class RoadSystemClass(object):
 		self.strUID = ''
 		self._km = 0.0
 		self._walkOnRoads = False
-		self._offset = ogre.Vector3(0, 5, 0)
-		self._ground01 = ogre.Vector3(0, 0.05, 0) 
+		self._offset = Ogre.Vector3(0, 5, 0)
+		self._ground01 = Ogre.Vector3(0, 0.05, 0) 
 		self.dotwalk = None
 		self.lastTimer = None
 		self.idxwalk = 0
@@ -123,9 +122,9 @@ class RoadSystemClass(object):
 		self.dotwalk.node.attachObject(self.ogreWindow.camera)
 		self.ogreWindow.camera.setPosition(-10, 5, 0)
 #		self.ogreWindow.camera.setAutoTracking(True, self.dotwalk.node)
-		self.ogreWindow.camera.lookAt(self.dotwalk.node.getPosition() + ogre.Vector3(1000, 5, 0))
+		self.ogreWindow.camera.lookAt(self.dotwalk.node.getPosition() + Ogre.Vector3(1000, 5, 0))
 		self.animation = self.ogreWindow.sceneManager.createAnimation("CameraTrack", (self.ogreSpline.getNumPoints() - 1) * 100) #length!??
-		self.animation.setInterpolationMode(ogre.Animation.IM_SPLINE);
+		self.animation.setInterpolationMode(Ogre.Animation.IM_SPLINE);
 		self.track = self.animation.createNodeTrack(0, self.dotwalk.node)
 		# Setup keyframes
 #		TransformKeyFrame* key = track->createNodeKeyFrame(0); // startposition
@@ -134,7 +133,7 @@ class RoadSystemClass(object):
 		cont = 0
 		for i in range(0, self.ogreSpline.getNumPoints()):
 			key = self.track.createNodeKeyFrame(i * 100)
-			key.setTranslate(self.ogreSpline.getPoint(i) + ogre.Vector3(0, 2, 0))
+			key.setTranslate(self.ogreSpline.getPoint(i) + Ogre.Vector3(0, 2, 0))
 		self.AnimState = self.ogreWindow.sceneManager.createAnimationState("CameraTrack") 
 		self.AnimState.setLoop(False)
 		log().info("walking on roads started, let's go...")
@@ -226,20 +225,20 @@ class RoadSystemClass(object):
 		"""
 		# some spline material
 		if self.spline is None:
-			self.ogreSpline = ogre.SimpleSpline()
+			self.ogreSpline = Ogre.SimpleSpline()
 		self.ogreSpline.clear()
 		self.ogreSpline.setAutoCalculate(False)
 
-		if ogre.MaterialManager.getSingleton().getByName("matline") is None:
-			mat = ogre.MaterialManager.getSingleton().create("matline", "ToolkitBase")
+		if Ogre.MaterialManager.getSingleton().getByName("matline") is None:
+			mat = Ogre.MaterialManager.getSingleton().create("matline", "ToolkitBase")
 			mat.setReceiveShadows(False)
 			mat.getTechnique(0).setLightingEnabled(True)
 			mat.getTechnique(0).getPass(0).setDiffuse(0, 1, 1, 0)
 			mat.getTechnique(0).getPass(0).setAmbient(0, 1, 1)
 			mat.getTechnique(0).getPass(0).setSelfIllumination(0, 1, 1)
 
-		if ogre.MaterialManager.getSingleton().getByName("matline_ideal") is None:
-			mat = ogre.MaterialManager.getSingleton().create("matline_ideal", "ToolkitBase")
+		if Ogre.MaterialManager.getSingleton().getByName("matline_ideal") is None:
+			mat = Ogre.MaterialManager.getSingleton().create("matline_ideal", "ToolkitBase")
 			mat.setReceiveShadows(False)
 			mat.getTechnique(0).setLightingEnabled(True)
 			mat.getTechnique(0).getPass(0).setDiffuse(0, 1, 0, 0)
@@ -284,15 +283,15 @@ class RoadSystemClass(object):
 		self.internal[name]['object'] = r
 		self.internal[name]['normalMaterialName'] = r.entity.getSubEntity(0).getMaterialName() 
 		self.internal[name]["selMaterialName"] = name + 'selected' 
-		selmat = ogre.MaterialManager.getSingleton().getByName(name + 'selected')
+		selmat = Ogre.MaterialManager.getSingleton().getByName(name + 'selected')
 		if selmat is None:
-			selmat = ogre.MaterialManager.getSingleton().create(
+			selmat = Ogre.MaterialManager.getSingleton().create(
 												self.internal[name]["selMaterialName"],
 												"ToolkitBase")
-			mat = ogre.MaterialManager.getSingleton().getByName(r.entity.getSubEntity(0).getMaterialName())
+			mat = Ogre.MaterialManager.getSingleton().getByName(r.entity.getSubEntity(0).getMaterialName())
 			if not mat is None:
 				mat.copyDetailsTo(selmat)
-			selmat.setSceneBlending(ogre.SceneBlendFactor.SBF_SOURCE_ALPHA, ogre.SceneBlendFactor.SBF_DEST_ALPHA)
+			selmat.setSceneBlending(Ogre.SceneBlendFactor.SBF_SOURCE_ALPHA, Ogre.SceneBlendFactor.SBF_DEST_ALPHA)
 			selmat.setSelfIllumination(1, 0.3, 0)
 			selmat.setDiffuse(1, 0.3, 0, 0.9)
 			selmat.setAmbient(1, 0.3, 0)
@@ -383,7 +382,7 @@ class RoadSystemClass(object):
 				self.strUID = struid
 				for i in range(len(self.splines[struid]['ctrlpoints'])): 
 					seg = self.splines[struid]['ctrlpoints'][i]
-					v = ogre.Vector3(seg['point'][0], seg['point'][1], seg['point'][2])
+					v = Ogre.Vector3(seg['point'][0], seg['point'][1], seg['point'][2])
 					self.addPoint(v, sticked=seg['sticked'], type=seg['type'])
 				self.createSplineLine(startAt=None, fromSegment=0, toSegment=None)
 			finally:
@@ -456,7 +455,7 @@ class RoadSystemClass(object):
 				
 	def createSplineLine(self, startAt=None, fromSegment=None, toSegment=None):
 		if startAt is not None:
-			self.addPoint(self.ogreWindow.maxterrainWaterHeight(startAt)[0] + ogre.Vector3(0, 0.1, 0))
+			self.addPoint(self.ogreWindow.maxterrainWaterHeight(startAt)[0] + Ogre.Vector3(0, 0.1, 0))
 		self.ogreSpline.recalcTangents()
 		self.drawSplineLines()
 		total = clock()
@@ -486,9 +485,9 @@ class RoadSystemClass(object):
 			v = None
 		elif before == False:
 			pos += 1
-			v = self.ogreWindow.boundBox.realPos(ogre.Vector3(-15, 0, 0))
+			v = self.ogreWindow.boundBox.realPos(Ogre.Vector3(-15, 0, 0))
 		else:
-			v = self.ogreWindow.boundBox.realPos(ogre.Vector3(15, 0, 0))
+			v = self.ogreWindow.boundBox.realPos(Ogre.Vector3(15, 0, 0))
 		toselect = pos
 		if toselect >= len(self.controlDots) : 
 			pos = len(self.controlDots) - 1
@@ -523,9 +522,9 @@ class RoadSystemClass(object):
 			self.deleteControlDots()
 			self.ogreWindow.renderWindow.update()
 			#destroza todos los segmentos anteriores y posteriores wtf
-			print "recreating spline"
+			print("recreating spline")
 			for i in range(len(points)):
-				print "adding segment %d, sticked %s" % (i, self.segments[i]['sticked'])  
+				print("adding segment %d, sticked %s" % (i, self.segments[i]['sticked']))
 				self.addPoint(points[i], segment=i, sticked=self.segments[i]['sticked'], type=self.segments[i]['type'], override=True)
 			self.createSplineLine(None, 0, None)
 
@@ -595,28 +594,28 @@ class RoadSystemClass(object):
 	def drawSplineLines(self):
 		# 1st draw clicked line
 		self.line[0].clear()
-		self.line[0].begin("matline", ogre.RenderOperation.OT_LINE_STRIP)
+		self.line[0].begin("matline", Ogre.RenderOperation.OT_LINE_STRIP)
 		for i in range(0, self.ogreSpline.getNumPoints()):
 			point = self.ogreSpline.getPoint(i)
-			self.line[0].position(point + ogre.Vector3(0, 1, 0))
+			self.line[0].position(point + Ogre.Vector3(0, 1, 0))
 		self.line[0].end()
 
 		# 1.5 draw clicked line points
 		self.line[2].clear()
-		self.line[2].begin("matline", ogre.RenderOperation.OT_LINE_LIST)
+		self.line[2].begin("matline", Ogre.RenderOperation.OT_LINE_LIST)
 		for i in range(0, self.ogreSpline.getNumPoints()):
 			point = self.ogreSpline.getPoint(i)
 			self.line[2].position(point)
-			self.line[2].position(point + ogre.Vector3(0, 2, 0))
+			self.line[2].position(point + Ogre.Vector3(0, 2, 0))
 		self.line[2].end()
 		
 		# 2nd draw ideal line
 		self.line[1].clear()
-		self.line[1].begin("matline_ideal", ogre.RenderOperation.OT_LINE_STRIP)
+		self.line[1].begin("matline_ideal", Ogre.RenderOperation.OT_LINE_STRIP)
 		factor = 400
 		for i in range(0, self.ogreSpline.getNumPoints() * factor):
 			point = self.ogreSpline.interpolate(i / float(self.ogreSpline.getNumPoints() * factor))
-			self.line[1].position(point + ogre.Vector3(0, 1, 0))
+			self.line[1].position(point + Ogre.Vector3(0, 1, 0))
 		self.line[1].end()
 
 	def finishSpline(self):
@@ -665,7 +664,7 @@ class RoadSystemClass(object):
 	def saveSplines(self, filename):
 		file = filename.replace('.terrn', '.splines')
 		#TODO: if file wasn't saved before.. we get an error ==> disable buttons you can not use ("save" and "save and play ror")
-		print "self segments file " + file
+		print("self segments file " + file)
 		output = open(file, 'wb')
 		if output:
 			pickle.dump(self.splines, output, 0)
@@ -674,10 +673,10 @@ class RoadSystemClass(object):
 	def checkBridgeNoPillar(self):
 		s, i, road = self.nextRoad(0, -1)
 		ns, ni, nroad = self.nextRoad(s, i)
-		ray = ogre.Ray(ogre.Vector3(0, 0, 0), ogre.Vector3(0, -1, 0)) 
+		ray = Ogre.Ray(Ogre.Vector3(0, 0, 0), Ogre.Vector3(0, -1, 0)) 
 		Q = self.ogreWindow.sceneManager.createRayQuery(ray);
 		self.ogreWindow.renderWindow.update()
-		offset = ogre.Vector3(0, 0, 0) 
+		offset = Ogre.Vector3(0, 0, 0) 
 		while nroad is not None:
 			if road.data.name.startswith('roadbridge'):
 				centerUp = self.ogreWindow.localPosToWorld(road, (5, -0.4, 0))# antes (5 + offset.x, -2, 0))
@@ -787,8 +786,8 @@ class RoadSystemClass(object):
 		v2.normalise()
 		
 		cosalpha = v1.dotProduct(v2)
-		radian = ogre.Radian(acos(cosalpha))
-		alpha = ogre.Degree(radian).valueDegrees()
+		radian = Ogre.Radian(acos(cosalpha))
+		alpha = Ogre.Degree(radian).valueDegrees()
 		return alpha
 		
 	def autocorrect(self, dif, atSegment, atIdx):
@@ -925,7 +924,7 @@ class RoadSystemClass(object):
 #		# phasse 2: create roads
 #===============================================================================
 		(x, y, z), lastRy = self.lastRoadPos(fromSegment - 1)   
-		test = ogre.Vector3(x, y, z)
+		test = Ogre.Vector3(x, y, z)
 		objName = 'road'
 		while True:
 			t = clock()

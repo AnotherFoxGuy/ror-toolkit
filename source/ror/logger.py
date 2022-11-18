@@ -1,5 +1,7 @@
-import os, os.path, sys, logging, logging.config
-from ogre.renderer.OGRE import *
+import logging.config
+
+import Ogre
+
 from TrueSingleton import Singleton
 from settingsManager import rorSettings
 

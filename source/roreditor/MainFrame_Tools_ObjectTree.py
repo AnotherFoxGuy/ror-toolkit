@@ -8,8 +8,6 @@ import wx.aui
 from ror.settingsManager import *
 from ror.rorcommon import *
 from ror.lputils import *
-
-import cStringIO
 from RoRObjectPreviewOgreWindow import *
 
 class RoRObjectTreeCtrl(ShapedWindow):
@@ -32,9 +30,9 @@ class RoRObjectTreeCtrl(ShapedWindow):
 		grid.SetEmptyCellSize(wx.Size(110, 3))
 		
 		# Window padding - sides
-		spacer_size = (6,6)
-		grid.AddSpacer(spacer_size, (0,0)) # Row 0, Col 0
-		grid.AddSpacer(spacer_size, (0,2)) # Row 0, Col 2
+		#spacer_size = (6,6)
+		#grid.AddSpacer(spacer_size, (0,0)) # Row 0, Col 0
+		#grid.AddSpacer(spacer_size, (0,2)) # Row 0, Col 2
 		
 		r = 2
 		c = 1
@@ -63,7 +61,7 @@ class RoRObjectTreeCtrl(ShapedWindow):
 		
 		# Bottom padding
 		r += 1
-		grid.AddSpacer(spacer_size, (r,c))
+		#grid.AddSpacer(spacer_size, (r,c))
 
 		
 		self.SetSizerAndFit(grid)
@@ -74,8 +72,8 @@ class RoRObjectTreeCtrl(ShapedWindow):
 		items = []
 		
 		imglist = wx.ImageList(16, 16, True, 2)
-		imglist.Add(wx.ArtProvider_GetBitmap(wx.ART_FOLDER, wx.ART_OTHER, wx.Size(16, 16)))
-		imglist.Add(wx.ArtProvider_GetBitmap(wx.ART_NORMAL_FILE, wx.ART_OTHER, wx.Size(16, 16)))
+		imglist.Add(wx.ArtProvider.GetBitmap(wx.ART_FOLDER, wx.ART_OTHER, wx.Size(16, 16)))
+		imglist.Add(wx.ArtProvider.GetBitmap(wx.ART_NORMAL_FILE, wx.ART_OTHER, wx.Size(16, 16)))
 		tree.AssignImageList(imglist)
 		
 		self.tree = tree
@@ -321,7 +319,7 @@ class RoRObjectTreeCtrl(ShapedWindow):
 		files = []
 #		extensions = " ".join('*'+x for x in extension)
 		for group in resourceGroupNames.keys():
-			filesr = ogre.ResourceGroupManager.getSingleton().findResourceFileInfo(group, extension)
+			filesr = []#Ogre.ResourceGroupManager.getSingleton().findResourceFileInfo(group, extension)
 			for file in filesr:
 				files.append(file)
 		return files
@@ -355,7 +353,7 @@ class RoRObjectTreeCtrl(ShapedWindow):
 		try:
 			self.error("Loading ...")
 			self.objectPreviewWindow.loadFile(filename)
-		except Exception, err:
+		except Exception as err:
 			self.error("RoR Toolkit can not handle this object :-(")
 			log().error("RoRPreviewCtrl exception")
 			log().error(str(err))

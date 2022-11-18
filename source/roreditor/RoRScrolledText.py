@@ -2,7 +2,7 @@
 import math, glob
 import wx, os, os.path, copy
 import pickle
-import ogre.renderer.OGRE as ogre
+import Ogre
 from ShapedControls import ShapedWindow
 from ror.rorcommon import *
 from ror.settingsManager import *

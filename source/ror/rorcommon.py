@@ -1,11 +1,13 @@
 #Max98 fix 0.38
 import sys, os, os.path, glob, copy, errno
+import types
+
 import wx
 from random import Random
 from types import *
 from tempfile import mkstemp
 from logger import log
-import ogre.renderer.OGRE as ogre
+import Ogre
 from settingsManager import rorSettings 
 
 
@@ -83,17 +85,15 @@ def randomID(num_bits=64):
 	Maximum artbitrarily set to 1025"""
 
 	if num_bits < 1:
-		raise RuntimeError, \
-			"randomID called with negative (or zero) number of bits"
+		raise RuntimeError("randomID called with negative (or zero) number of bits")
 	if num_bits > 1024:
-		raise RuntimeError, \
-			"randomID called with too many bits (> 1024)"
+		raise RuntimeError("randomID called with too many bits (> 1024)")
 
 	# create a num_bits string from random import Random
 	rnd = Random()
-	tmp_id = 0L
+	tmp_id = 0
 	for i in range(0, num_bits):
-		tmp_id += long(rnd.randint(0, 1)) << i
+		tmp_id += (rnd.randint(0, 1)) << i
 	#rof
 
 	# The 2: removes the '0x' and :-1 removes the L
@@ -113,8 +113,7 @@ def readResourceConfig():
 	zipResources = []
 	
 	if rorSettings().onlyParseTrucks:
-		normalResources.append(os.path.join(rorSettings().rorHomeFolder, 'terrains'))
-		normalResources.append(os.path.join(rorSettings().rorHomeFolder, 'vehicles'))
+		normalResources.append(os.path.join(rorSettings().rorHomeFolder, 'mods'))
 		zipResources.append(os.path.join(rorSettings().rorFolder, 'resources'))
 		return (normalResources, zipResources)
 	 
@@ -165,21 +164,21 @@ def initResources():
 	counter = 1
 	
 	# aabb offset setup to zero
-	ogre.MeshManager.getSingleton().setBoundsPaddingFactor(0.0)
+	Ogre.MeshManager.getSingleton().setBoundsPaddingFactor(0.0)
 
 	log().debug("init Resources")
-	#ogre.ResourceGroupManager.getSingleton().addResourceLocation("media/packs/OgreCore.zip", "Zip", "Bootstrap", False)
+	#Ogre.ResourceGroupManager.getSingleton().addResourceLocation("media/packs/OgreCore.zip", "Zip", "Bootstrap", False)
 	media = rorSettings().getConcatPath(rorSettings().toolkitMainFolder, ["media"])
 	mat = rorSettings().getConcatPath(rorSettings().toolkitMainFolder, ["media", "materials"])
 	models = rorSettings().getConcatPath(rorSettings().toolkitMainFolder, ["media", "models"])
 	overlay = rorSettings().getConcatPath(rorSettings().toolkitMainFolder, ["media", "overlay"])
 #	etm = rorSettings().getConcatPath(rorSettings().toolkitMainFolder, ["media", "ET"])
 
-	ogre.ResourceGroupManager.getSingleton().addResourceLocation(mat, "FileSystem", "ToolkitBase", False)
-	ogre.ResourceGroupManager.getSingleton().addResourceLocation(models, "FileSystem", "ToolkitBase", False)
-	ogre.ResourceGroupManager.getSingleton().addResourceLocation(overlay, "FileSystem", "ToolkitBase", False)
-#	ogre.ResourceGroupManager.getSingleton().addResourceLocation(etm, "FileSystem", "ToolkitBase", False)
-	ogre.ResourceGroupManager.getSingleton().initialiseResourceGroup("ToolkitBase")	
+	Ogre.ResourceGroupManager.getSingleton().addResourceLocation(mat, "FileSystem", "ToolkitBase", False)
+	Ogre.ResourceGroupManager.getSingleton().addResourceLocation(models, "FileSystem", "ToolkitBase", False)
+	Ogre.ResourceGroupManager.getSingleton().addResourceLocation(overlay, "FileSystem", "ToolkitBase", False)
+#	Ogre.ResourceGroupManager.getSingleton().addResourceLocation(etm, "FileSystem", "ToolkitBase", False)
+	Ogre.ResourceGroupManager.getSingleton().initialiseResourceGroup("ToolkitBase")	
 	resourceGroupNames["ToolkitBase"] = None #multiples paths
 	
 	(normalResources, zipResources) = readResourceConfig()
@@ -193,10 +192,10 @@ def initResources():
 				if Ignore(file): 
 					continue
 				groupName = "General-%d" % counter
-				ogre.ResourceGroupManager.getSingleton().addResourceLocation(file, "Zip", groupName, False)
+				Ogre.ResourceGroupManager.getSingleton().addResourceLocation(file, "Zip", groupName, False)
 				counter += 1
 				resourceGroupNames[groupName] = file
-				ogre.ResourceGroupManager.getSingleton().initialiseResourceGroup(groupName)
+				Ogre.ResourceGroupManager.getSingleton().initialiseResourceGroup(groupName)
 			except:
 				log().debug("error adding or initialising Zip Resource group %s of file %s" % (groupName, file))
 				continue
@@ -211,10 +210,10 @@ def initResources():
 				#print 'adding normal resource: ' + fullname
 				if os.path.isdir(fullname):
 					groupName = "General-%d" % counter
-					ogre.ResourceGroupManager.getSingleton().addResourceLocation(fullname, "FileSystem", groupName, False)
+					Ogre.ResourceGroupManager.getSingleton().addResourceLocation(fullname, "FileSystem", groupName, False)
 					counter += 1
 					resourceGroupNames[groupName] = fullname
-					ogre.ResourceGroupManager.getSingleton().initialiseResourceGroup(groupName)
+					Ogre.ResourceGroupManager.getSingleton().initialiseResourceGroup(groupName)
 			except:
 				log().debug("error adding or initialising Zip Resource group %s of file %s" % (groupName, file))
 				
@@ -226,8 +225,8 @@ def loadResourceFile(filename):
 	group = ogreGroupFor(filename)
 	if group != "":
 		try:
-			ds = ogre.ResourceGroupManager.getSingleton().openResource(filename, group, True);
-		except Exception, err:
+			ds = Ogre.ResourceGroupManager.getSingleton().openResource(filename, group, True);
+		except Exception as err:
 			log().error("Resource file %s not loaded" % filename)
 			log().error(str(err))
 		else:
@@ -241,15 +240,15 @@ def openConfigFile(filename=""):
 	group = ogreGroupFor(filename)
 	if group != "":
 		try:
-			ds = ogre.ResourceGroupManager.getSingleton().openResource(filename, group);
-		except Exception, err:
+			ds = Ogre.ResourceGroupManager.getSingleton().openResource(filename, group);
+		except Exception as err:
 			log().error("Resource file %s not loaded" % filename)
 			log().error(str(err))
 	
-		cfg = ogre.ConfigFile()
+		cfg = Ogre.ConfigFile()
 		cfg.load(ds)
 	
-		#return a ogre.ConfigFile
+		#return a Ogre.ConfigFile
 		return cfg
 
 def disableCustomMaterial(cfgfile):
@@ -271,7 +270,7 @@ def deleteFileList():
 
 def ogreGroupFor(filename=""):
 	try:
-	   group = ogre.ResourceGroupManager.getSingleton().findGroupContainingResource (filename)
+	   group = Ogre.ResourceGroupManager.getSingleton().findGroupContainingResource (filename)
 	except:
 		log().debug('group for "%s" not found' % filename) 
 		group = ""
@@ -280,15 +279,15 @@ def ogreGroupFor(filename=""):
 def loadResourceLine(filename, Line=0):
 	""" return a single line of the filename """
 	try:
-		group = ogre.ResourceGroupManager.getSingleton().findGroupContainingResource (filename)
+		group = Ogre.ResourceGroupManager.getSingleton().findGroupContainingResource (filename)
 	except:
 		log().debug("group for %s not found" % filename) 
 		group = ""
 	
 	if group != "":
 		try:
-			ds = ogre.ResourceGroupManager.getSingleton().openResource(filename, group);
-		except Exception, err:
+			ds = Ogre.ResourceGroupManager.getSingleton().openResource(filename, group);
+		except Exception as err:
 			log().error("Resource file %s not loaded" % filename)
 			log().error(str(err))
 		cont = 0
@@ -336,11 +335,11 @@ def list_has_key(listOfDict, keyToSearch=''):
 	    where the dictionary has the key searched
 	"""
 	try:
-		if not isinstance(listOfDict, ListType): 
+		if not isinstance(listOfDict, list):
 			raise Exception("parameter of type list expected")
 		if len(listOfDict) > 0:
 			for i in range(len(listOfDict)):
-				if isinstance(listOfDict[i], DictType):
+				if isinstance(listOfDict[i], dict):
 					if listOfDict[i].has_key(keyToSearch):
 						return i
 				else: raise Exception("this list has not dictionaries inside ")
@@ -382,7 +381,7 @@ def getBitmap(title):
 	return wx.Bitmap
 	"""
 	imgfile = rorSettings().getConcatPath(rorSettings().toolkitMainFolder, ['media', 'gui', title.replace(" ", "_") + ".png"], True)
-	print "image to load for toolbar labeled %s " % imgfile
+	print("image to load for toolbar labeled %s " % imgfile)
 	if os.path.isfile(imgfile):
 		return wx.Bitmap(imgfile, wx.BITMAP_TYPE_PNG)
 	else:

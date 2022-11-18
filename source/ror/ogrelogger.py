@@ -1,4 +1,4 @@
-import ogre.renderer.OGRE as ogre 
+import Ogre 
 import logger
 
 class MyLog(ogre.LogListener):

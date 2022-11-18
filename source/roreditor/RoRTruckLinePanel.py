@@ -15,8 +15,6 @@ from xml.sax.handler import property_xml_string
 import wx
 import wx.aui
 
-import cStringIO
-
 MAXCONTROLS = 25
 
 class TruckLinePanel(wx.Panel):
@@ -133,7 +131,7 @@ class TruckLinePanel(wx.Panel):
 	"""
 
 	def OnTextCtrlFocus(self, evt=0, active=True, id=0):
-		print "event focused"
+		print("event focused")
 		id = evt.GetId()
 		if id in self.ids:
 			idx = self.ids.index(id)
@@ -146,7 +144,7 @@ class TruckLinePanel(wx.Panel):
 				self.lblHelp.Update()
 		evt.Skip()
 	def OnUpdateText(self, evt):
-		print "event updatetext"
+		print("event updatetext")
 		evt.Skip()
 	
 	def OnTextCtrlLostFocus(self, evt):

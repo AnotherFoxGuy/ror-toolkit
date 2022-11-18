@@ -1,6 +1,6 @@
 #Lepes
 import wx, math
-import ogre.renderer.OGRE as ogre
+import Ogre
 from wxogre.OgreManager import *
 from wxogre.wxOgreWindow import *
 from ror.odefparser import *

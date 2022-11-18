@@ -3,7 +3,7 @@ Created on 07/04/2009
 
 @author: Lepes
 '''
-import ogre.renderer.OGRE as ogre 
+import Ogre 
 from ror.rorcommon import *
 from RoRVirtualKeys import *
 from ror.lputils import *

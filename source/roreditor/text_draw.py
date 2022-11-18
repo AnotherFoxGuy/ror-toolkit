@@ -24,7 +24,7 @@ def tempName():
 #
 # This code is provided as is, without warranty, use at your own risk.
 
-import ogre.renderer.OGRE as ogre
+import Ogre
 from wxogre.OgreManager import *
 
 #   ERROR 

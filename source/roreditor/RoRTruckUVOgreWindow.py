@@ -1,6 +1,6 @@
 #Thomas Fischer 31/05/2007, thomas@thomasfischer.biz
 import wx, os, os.path
-import ogre.renderer.OGRE as ogre
+import Ogre
 from ror.truckparser import *
 
 from ror.logger import log
@@ -10,9 +10,8 @@ from ror.rorcommon import *
 from wxogre.OgreManager import *
 from wxogre.wxOgreWindow import *
 
-import ogre.renderer.OGRE as Ogre
-#import ogre.physics.OgreNewt as OgreNewt
-import ogre.io.OIS as OIS
+import Ogre
+#import Ogre.physics.OgreNewt as OgreNewt
 
 IMGSCALE = 20
 
@@ -60,7 +59,7 @@ class RoRTruckUVOgreWindow(wxOgreWindow):
 	def __del__ (self):
 		# delete the world when we're done.
 		self.sceneManager.destroyEntity('groundent')
-		#ogre.ResourceGroupManager.getSingleton().undeclareResource("UVGroundPlane", "General")
+		#Ogre.ResourceGroupManager.getSingleton().undeclareResource("UVGroundPlane", "General")
 
 		del self.bodies
 
@@ -75,12 +74,12 @@ class RoRTruckUVOgreWindow(wxOgreWindow):
 		initResources()
 	
 		#get the scenemanager
-		self.sceneManager = getOgreManager().createSceneManager(ogre.ST_GENERIC)
+		self.sceneManager = getOgreManager().createSceneManager()# Ogre.SceneManager.ST_GENERIC
 
 		# create a camera
 		self.camera = self.sceneManager.createCamera('Camera')
 		self.camera.setAutoAspectRatio(True)
-		self.camera.setProjectionType(Ogre.ProjectionType.PT_ORTHOGRAPHIC)
+		self.camera.setProjectionType(Ogre.Camera.ProjectionType.PT_ORTHOGRAPHIC)
 		self.camera.setFarClipDistance(9999)
 		self.camera.setNearClipDistance(30)
 		self.camera.setPosition(Ogre.Vector3(0,100,-0.1))
@@ -88,11 +87,11 @@ class RoRTruckUVOgreWindow(wxOgreWindow):
 
 		# create the Viewport"
 		self.viewport = self.renderWindow.addViewport(self.camera, 0, 0.0, 0.0, 1.0, 1.0)
-		self.viewport.backgroundColour = ogre.ColourValue(0, 0, 0)
+		self.viewport.backgroundColour = Ogre.ColourValue(0, 0, 0)
 
 		#set some default values
 		self.sceneDetailIndex = 0
-		self.filtering = ogre.TFO_BILINEAR
+		self.filtering = Ogre.TFO_BILINEAR
 
 		# bind mouse and keyboard
 		self.Bind(wx.EVT_KEY_DOWN, self.onKeyDown)
@@ -103,19 +102,19 @@ class RoRTruckUVOgreWindow(wxOgreWindow):
 
 
 	def populateScene(self):
-		self.sceneManager.AmbientLight = ogre.ColourValue(0.7, 0.7, 0.7 )
+		self.sceneManager.AmbientLight = Ogre.ColourValue(0.7, 0.7, 0.7 )
 
 		fadeColour = (0.8, 0.8, 0.8)
-#		self.sceneManager.setFog(ogre.FOG_EXP, ogre.ColourValue.White, 0.0002)
-		#self.sceneManager.setFog(ogre.FOG_LINEAR, fadeColour, 0.001, 5000.0, 10000.0)
+#		self.sceneManager.setFog(Ogre.FOG_EXP, Ogre.ColourValue.White, 0.0002)
+		#self.sceneManager.setFog(Ogre.FOG_LINEAR, fadeColour, 0.001, 5000.0, 10000.0)
 		self.renderWindow.getViewport(0).BackgroundColour = fadeColour
 
-		self.sceneManager.AmbientLight = ogre.ColourValue(0.7, 0.7, 0.7 )
-		self.sceneManager.setShadowTechnique(ogre.ShadowTechnique.SHADOWTYPE_STENCIL_ADDITIVE);
+		self.sceneManager.AmbientLight = Ogre.ColourValue(0.7, 0.7, 0.7 )
+		self.sceneManager.setShadowTechnique(Ogre.ShadowTechnique.SHADOWTYPE_STENCIL_ADDITIVE);
 		self.sceneManager.setSkyDome(True, 'mysimple/truckEditorSky', 4.0, 8.0)
 
 		self.MainLight = self.sceneManager.createLight('MainLight')
-		self.MainLight.setPosition (ogre.Vector3(20, 80, 130))
+		self.MainLight.setPosition (Ogre.Vector3(20, 80, 130))
 
 		self.createUVGroundPlane()
 
@@ -126,15 +125,15 @@ class RoRTruckUVOgreWindow(wxOgreWindow):
 		self.createUVIslands()
 
 	def createUVGroundPlane(self):
-		plane = ogre.Plane()
-		plane.normal = ogre.Vector3(0, 1, 0)
+		plane = Ogre.Plane()
+		plane.normal = Ogre.Vector3(0, 1, 0)
 		plane.d = 100
 		# see http://www.ogre3d.org/docs/api/html/classOgre_1_1MeshManager.html#Ogre_1_1MeshManagera5
 		uuid = randomID()
-		ogre.MeshManager.getSingleton().createPlane(uuid+'UVGroundPlane', "General", plane, 2000, 2000,
-												20, 20, True, 1, 200.0, 200.0, ogre.Vector3(0, 0, 1),
-												ogre.HardwareBuffer.HBU_STATIC_WRITE_ONLY,
-												ogre.HardwareBuffer.HBU_STATIC_WRITE_ONLY,
+		Ogre.MeshManager.getSingleton().createPlane(uuid+'UVGroundPlane', "General", plane, 2000, 2000,
+												20, 20, True, 1, 200.0, 200.0, Ogre.Vector3(0, 0, 1),
+												Ogre.HardwareBuffer.HBU_STATIC_WRITE_ONLY,
+												Ogre.HardwareBuffer.HBU_STATIC_WRITE_ONLY,
 												True, True)
 		entity = self.sceneManager.createEntity(uuid+'groundent', uuid+'UVGroundPlane')
 
@@ -146,37 +145,37 @@ class RoRTruckUVOgreWindow(wxOgreWindow):
 		#print smg
 		# read in nodes
 		nodes = {}
-		print "nodes"
+		print("nodes")
 		for nodeobj in self.trucktree['nodes']:
 			if nodeobj.has_key('type'):
 				continue
 			node = nodeobj['data']
-			print node
-			nodes[int(node[0])] = ogre.Vector3(float(node[1]),float(node[2]),float(node[3]))
+			print(node)
+			nodes[int(node[0])] = Ogre.Vector3(float(node[1]),float(node[2]),float(node[3]))
 
 		# read in UVs then
 		uv = {}
-		print "uv"
+		print("uv")
 		for data in smg['texcoords']:
 			tex = data['data']
-			print tex
+			print(tex)
 			uv[int(tex[0])] = [float(tex[1]), float(tex[2])]
 
 		# and create the triangles
-		print "triangles"
-		print self.trucktree['globals'][0]['data'][2]
+		print("triangles")
+		print(self.trucktree['globals'][0]['data'][2])
 		matname = self.trucktree['globals'][0]['data'][2]
 
 		idstr = str(smgid)
 		uuid = randomID()
 		sm = self.sceneManager.createManualObject(uuid+"manualsmg"+idstr)
-		sm.begin(matname, ogre.RenderOperation.OT_TRIANGLE_LIST)
+		sm.begin(matname, Ogre.RenderOperation.OT_TRIANGLE_LIST)
 
 		uvcounter = smgid * 100
-		print "cab"
+		print("cab")
 		for data in smg['cab']:
 			cab = data['data']
-			print cab
+			print(cab)
 			if len(cab) == 0:
 				continue
 
@@ -184,7 +183,7 @@ class RoRTruckUVOgreWindow(wxOgreWindow):
 			uvcounter += 1
 			line = self.sceneManager.createManualObject(uuid+"manualuv_" + idstr)
 			mat = "TruckEditor/UVBeam"
-			line.begin(mat, ogre.RenderOperation.OT_LINE_LIST)
+			line.begin(mat, Ogre.RenderOperation.OT_LINE_LIST)
 
 			depth = 10
 
@@ -222,7 +221,7 @@ class RoRTruckUVOgreWindow(wxOgreWindow):
 		if self.trucktree:
 			log().info("truck editor len(trucktree) = " +str(len(self.trucktree) ))
 			matname = self.trucktree['globals'][0]['data'][2]
-			mat = ogre.MaterialManager.getSingleton().getByName(matname)
+			mat = Ogre.MaterialManager.getSingleton().getByName(matname)
 			if mat is not None:
 				texturename = mat.getTechnique(0).getPass(0).getTextureUnitState(0).getTextureName()
 				pair = mat.getTechnique(0).getPass(0).getTextureUnitState(0).getTextureDimensions()
@@ -232,19 +231,19 @@ class RoRTruckUVOgreWindow(wxOgreWindow):
 				log().debug("texture name %s, image Width %d, image Height %d " %( texturename, int(self.imgwidth), int(self.imgheight)))
 
 
-		plane = ogre.Plane()
-		plane.normal = ogre.Vector3(0, 1, 0)
+		plane = Ogre.Plane()
+		plane.normal = Ogre.Vector3(0, 1, 0)
 		plane.d = 20
 		# see http://www.ogre3d.org/docs/api/html/classOgre_1_1MeshManager.html#Ogre_1_1MeshManagera5
 		uuid = randomID()
-		mesh = ogre.MeshManager.getSingleton().createPlane(uuid + 'UVPlane', "General", plane, self.imgwidth/IMGSCALE, self.imgheight/IMGSCALE,
-													1, 1, True, 1, 1, 1, ogre.Vector3(0, 0, 1),
-													ogre.HardwareBuffer.HBU_STATIC_WRITE_ONLY,
-													ogre.HardwareBuffer.HBU_STATIC_WRITE_ONLY,
+		mesh = Ogre.MeshManager.getSingleton().createPlane(uuid + 'UVPlane', "General", plane, self.imgwidth/IMGSCALE, self.imgheight/IMGSCALE,
+													1, 1, True, 1, 1, 1, Ogre.Vector3(0, 0, 1),
+													Ogre.HardwareBuffer.HBU_STATIC_WRITE_ONLY,
+													Ogre.HardwareBuffer.HBU_STATIC_WRITE_ONLY,
 													True, True)
 		entity = self.sceneManager.createEntity(uuid+'uvent', uuid+'UVPlane')
 
-		#it = ogre.ResourceGroupManager.getSingleton().getResourceManagerIterator()
+		#it = Ogre.ResourceGroupManager.getSingleton().getResourceManagerIterator()
 		#rm = it.getNext()
 		#print rm
 		#texture = rm.getByName(texturename)
@@ -281,7 +280,7 @@ class RoRTruckUVOgreWindow(wxOgreWindow):
 			else:
 				dx = float(dx) / 2
 				dy = float(dy) / 2
-			newPos = self.camera.getPosition() + ogre.Vector3(-dx, 0, -dy)
+			newPos = self.camera.getPosition() + Ogre.Vector3(-dx, 0, -dy)
 			self.camera.setPosition(newPos)
 			# todo : restrict movement
 		event.Skip()
@@ -291,12 +290,12 @@ class RoRTruckUVOgreWindow(wxOgreWindow):
 		if event.ShiftDown():
 			d = 5
 		if event.m_keyCode == 65: # A, wx.WXK_LEFT:
-			self.camera.moveRelative(ogre.Vector3(d,0,0))
+			self.camera.moveRelative(Ogre.Vector3(d,0,0))
 		elif event.m_keyCode == 68: # D, wx.WXK_RIGHT:
-			self.camera.moveRelative(ogre.Vector3(-d,0,0))
+			self.camera.moveRelative(Ogre.Vector3(-d,0,0))
 		elif event.m_keyCode == 87: # W ,wx.WXK_UP:
-			self.camera.moveRelative(ogre.Vector3(0,-d,0))
+			self.camera.moveRelative(Ogre.Vector3(0,-d,0))
 		elif event.m_keyCode == 83: # S, wx.WXK_DOWN:
-			self.camera.moveRelative(ogre.Vector3(0,d,0))
+			self.camera.moveRelative(Ogre.Vector3(0,d,0))
 
 		event.Skip()

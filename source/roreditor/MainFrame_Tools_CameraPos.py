@@ -6,15 +6,14 @@
 # 
 # 
 #===============================================================================
-import math, glob
-import wx, os, os.path, copy
+import os.path
 import pickle
-import ogre.renderer.OGRE as ogre
+
 from ShapedControls import *
+from ror.logger import log
 from ror.rorcommon import *
 from ror.settingsManager import rorSettings
-from ror.lputils import positionClass
-from ror.logger import log
+
 
 class CameraWindow(ShapedWindow):
 	
@@ -35,9 +34,9 @@ class CameraWindow(ShapedWindow):
 		grid.SetEmptyCellSize(wx.Size(110, 3))
 		
 		# Window padding
-		spacer_size = (6,6)
-		grid.AddSpacer(spacer_size, (0,0)) # Row 0, Col 0
-		grid.AddSpacer(spacer_size, (0,2)) # Row 0, Col 2
+		#spacer_size = (6,6)
+		#grid.AddSpacer(spacer_size, (0,0)) # Row 0, Col 0
+		#grid.AddSpacer(spacer_size, (0,2)) # Row 0, Col 2
 		
 		
 		r = 1
@@ -116,7 +115,7 @@ class CameraWindow(ShapedWindow):
 				 
 		# Bottom padding
 		r += 1
-		grid.AddSpacer(spacer_size, (r,c))
+		#grid.AddSpacer(spacer_size, (r,c))
 		
 		self.SetSizerAndFit(grid)
 		self.updateSkin()

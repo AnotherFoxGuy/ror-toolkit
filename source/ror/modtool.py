@@ -91,8 +91,8 @@ class ModTool:
 			return ModTool().work("installall", targetfile, self.verbose, self.dryrun)
 		
 		elif mode == "uniqueid":
-			print self.getUniqueID()
-		
+			print(self.getUniqueID())
+
 		elif mode in ["list", "listall"]:
 			filename = os.path.abspath(targetfile)
 			self.ExtractToTemp(targetfile)
@@ -235,7 +235,7 @@ class ModTool:
 			dst = os.path.join(DOWNLOADDIR, repofilename)
 			#print src, dst
 			return self.wget(src, dst)
-		except Exception, err:
+		except Exception as err:
 			log().error("Error while trying to donwload file from the Repository:")
 			log().error(str(err))
 			self.removetemp(False)
@@ -251,7 +251,7 @@ class ModTool:
 				if line[0:9] == "<!--ID-->":
 					id = line[9:].strip()
 					return id
-		except Exception, err:
+		except Exception as err:
 			log().error("Error while trying to get a unique ID")
 			log().error(str(err))
 			self.removetemp(False)
@@ -262,7 +262,7 @@ class ModTool:
 			try:
 				shutil.rmtree(TEMPDIR)
 				#os.rmdir(TEMPDIR)
-			except Exception, err:
+			except Exception as err:
 				if not reporterrors:
 					return
 				log().error(str(err))

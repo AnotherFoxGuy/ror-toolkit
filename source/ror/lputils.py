@@ -2,7 +2,7 @@
 import wx, os, os.path, copy
 from types import *
 
-import ogre.renderer.OGRE as ogre
+import Ogre
 from logger import log
 from ror.rorcommon import *
 from ror.settingsManager import *
@@ -54,18 +54,18 @@ def getList(value):
 	""" accept Tuple, None, List, Vector3 and Quaternion 
 	 returnning a python List """
 	result = []
-	if type(value) is TupleType:
+	if type(value) is tuple:
 		for i in value:
 			result.append(i)
 	elif isinstance(value, NoneType):
 		result.append(None)
-	elif type(value) is ListType:
+	elif type(value) is list:
 		result = value
-	elif isinstance(value, ogre.Vector3):
+	elif isinstance(value, Ogre.Vector3):
 		result.append(value.x)
 		result.append(value.y)
 		result.append(value.z)
-	elif isinstance (value, ogre.Quaternion) :
+	elif isinstance (value, Ogre.Quaternion) :
 		result.append(value.w)
 		result.append(value.x)
 		result.append(value.y)
@@ -89,7 +89,7 @@ class posRotClass(object):
 		self.clear()
 		self.values = []
 		
-		if type(value) is TupleType or type(value) is ListType:
+		if type(value) is tuple or type(value) is list:
 			for i in value:
 				self.values.append(i)
 		elif isinstance(value, NoneType):
@@ -97,11 +97,11 @@ class posRotClass(object):
 			self.values.append(None)
 			self.values.append(None)
 			self.values.append(None)
-		elif isinstance(value, ogre.Vector3):
+		elif isinstance(value, Ogre.Vector3):
 			self.values.append(value.x)
 			self.values.append(value.y)
 			self.values.append(value.z)
-		elif isinstance (value, ogre.Quaternion) :
+		elif isinstance (value, Ogre.Quaternion) :
 			self.values.append(value.w)
 			self.values.append(value.x)
 			self.values.append(value.y)
@@ -118,7 +118,7 @@ class posRotClass(object):
 			self.append(0)
 			self.append(0)
 			self.append(0)
-		return ogre.Vector3(self.values[0], self.values[1], self.values[2])
+		return Ogre.Vector3(self.values[0], self.values[1], self.values[2])
 		   
 	def setasVector3(self, value):
 		self.setValues(value)
@@ -141,7 +141,7 @@ class posRotClass(object):
 		if len(self.values) != 4:
 			raise Exception("we don't have 4 values to convert to Quaternion")
 		
-		return ogre.Quaternion(self.values[0], self.values[1], self.values[2], self.values[3])
+		return Ogre.Quaternion(self.values[0], self.values[1], self.values[2], self.values[3])
 		   
 	def setasQuaternion(self, value):
 		self.setValues(value)
@@ -292,15 +292,15 @@ if __name__ == "__main__":
 	
 	x = positionClass()
 	x.asList = [1, 2, 3]
-	print x.x
+	print(x.x)
 	del x
 	y = positionClass() 
 	y.asList = [3, 3, 3]
 #	print " ".join(x.asStrList)
-	print " ".join(y.asStrList)
-	print y.x
+	print(" ".join(y.asStrList))
+	print(y.x)
 	y.asList = [4, 4, 4]
-	print y.x
+	print(y.x)
 #	print x.x	
 		
 		

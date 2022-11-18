@@ -15,7 +15,7 @@ class rorCellEditor(gridlib.PyGridCellEditor):
 	docstring.
 	"""
 	def __init__(self):
-		print "rorCellEditor ctor\n"
+		print("rorCellEditor ctor\n")
 		gridlib.PyGridCellEditor.__init__(self)
 
 
@@ -24,7 +24,7 @@ class rorCellEditor(gridlib.PyGridCellEditor):
 		Called to create the control, which must derive from wx.Control.
 		*Must Override*
 		"""
-		print "rorCellEditor: Create\n"
+		print("rorCellEditor: Create\n")
 		self._tc = wx.TextCtrl(parent, id, "")
 		self._tc.SetInsertionPoint(0)
 		self.SetControl(self._tc)
@@ -39,7 +39,7 @@ class rorCellEditor(gridlib.PyGridCellEditor):
 		If you don't fill the cell (the rect) then be sure to override
 		PaintBackground and do something meaningful there.
 		"""
-		print "rorCellEditor: SetSize %s\n" % rect
+		print("rorCellEditor: SetSize %s\n" % rect)
 		self._tc.SetDimensions(rect.x, rect.y, rect.width + 2, rect.height + 2,
 							   wx.SIZE_ALLOW_MINUS_ONE)
 
@@ -49,7 +49,7 @@ class rorCellEditor(gridlib.PyGridCellEditor):
 		Show or hide the edit control.  You can use the attr (if not None)
 		to set colours or fonts for the control.
 		"""
-		print "rorCellEditor: Show(self, %s, %s)\n" % (show, attr)
+		print("rorCellEditor: Show(self, %s, %s)\n" % (show, attr))
 		super(rorCellEditor, self).Show(show, attr)
 
 
@@ -60,8 +60,7 @@ class rorCellEditor(gridlib.PyGridCellEditor):
 		attribute.  In this class the edit control fills the whole cell so
 		don't do anything at all in order to reduce flicker.
 		"""
-		print "rorCellEditor: PaintBackground\n"
-
+		print("rorCellEditor: PaintBackground\n")
 
 	def BeginEdit(self, row, col, grid):
 		"""
@@ -69,7 +68,7 @@ class rorCellEditor(gridlib.PyGridCellEditor):
 		to begin editing.  Set the focus to the edit control.
 		*Must Override*
 		"""
-		print "rorCellEditor: BeginEdit (%d,%d)\n" % (row, col)
+		print("rorCellEditor: BeginEdit (%d,%d)\n" % (row, col))
 		self.startValue = grid.GetTable().GetValue(row, col)
 		self._tc.SetValue(self.startValue)
 		self._tc.SetInsertionPointEnd()
@@ -85,7 +84,7 @@ class rorCellEditor(gridlib.PyGridCellEditor):
 		has changed.  If necessary, the control may be destroyed.
 		*Must Override*
 		"""
-		print "rorCellEditor: EndEdit (%d,%d)\n" % (row, col)
+		print("rorCellEditor: EndEdit (%d,%d)\n" % (row, col))
 		changed = False
 
 		val = self._tc.GetValue()
@@ -104,7 +103,7 @@ class rorCellEditor(gridlib.PyGridCellEditor):
 		Reset the value in the control back to its starting value.
 		*Must Override*
 		"""
-		print "rorCellEditor: Reset\n"
+		print("rorCellEditor: Reset\n")
 		self._tc.SetValue(self.startValue)
 		self._tc.SetInsertionPointEnd()
 
@@ -115,7 +114,7 @@ class rorCellEditor(gridlib.PyGridCellEditor):
 		version only checks that the event has no modifiers.  F2 is special
 		and will always start the editor.
 		"""
-		print "rorCellEditor: IsAcceptedKey: %d\n" % (evt.GetKeyCode())
+		print("rorCellEditor: IsAcceptedKey: %d\n" % (evt.GetKeyCode()))
 
 		## We can ask the base class to do it
 		#return super(rorCellEditor, self).IsAcceptedKey(evt)
@@ -130,7 +129,7 @@ class rorCellEditor(gridlib.PyGridCellEditor):
 		If the editor is enabled by pressing keys on the grid, this will be
 		called to let the editor do something about that first key if desired.
 		"""
-		print "rorCellEditor: StartingKey %d\n" % evt.GetKeyCode()
+		print("rorCellEditor: StartingKey %d\n" % evt.GetKeyCode())
 		key = evt.GetKeyCode()
 		ch = None
 		if key in [ wx.WXK_NUMPAD0, wx.WXK_NUMPAD1, wx.WXK_NUMPAD2, wx.WXK_NUMPAD3,
@@ -140,7 +139,7 @@ class rorCellEditor(gridlib.PyGridCellEditor):
 
 			ch = ch = chr(ord('0') + key - wx.WXK_NUMPAD0)
 
-		elif key < 256 and key >= 0 and chr(key) in string.printable:
+		elif key < 256 and key >= 0:
 			ch = chr(key)
 
 		if ch is not None:
@@ -158,12 +157,11 @@ class rorCellEditor(gridlib.PyGridCellEditor):
 		called to allow the editor to simulate the click on the control if
 		needed.
 		"""
-		print "rorCellEditor: StartingClick\n"
-
+		print("rorCellEditor: StartingClick\n")
 
 	def Destroy(self):
 		"""final cleanup"""
-		print "rorCellEditor: Destroy\n"
+		print("rorCellEditor: Destroy\n")
 		super(rorCellEditor, self).Destroy()
 
 
@@ -172,7 +170,7 @@ class rorCellEditor(gridlib.PyGridCellEditor):
 		Create a new object which is the copy of this one
 		*Must Override*
 		"""
-		print "rorCellEditor: Clone\n"
+		print("rorCellEditor: Clone\n")
 		return rorCellEditor(self.log)
 
 
@@ -211,9 +209,9 @@ class rortable(gridlib.PyGridTableBase):
 			if coltype == "string" : 
 #				default.SetSize(1, 2)
 				default.SetAlignment(wx.ALIGN_LEFT, wx.ALIGN_CENTER)
-				if colname.find('material') <> -1: 
+				if colname.find('material') != -1:
 					default.SetTextColour(wx.NamedColor('#23ab26'))
-				elif colname.find("mesh") <> -1: default.SetTextColour(wx.Colour(244, 90, 231))
+				elif colname.find("mesh") != -1: default.SetTextColour(wx.Colour(244, 90, 231))
 				else: default.SetTextColour(wx.BLACK)
 			elif coltype == "node": 
 				default.SetAlignment(wx.ALIGN_RIGHT, wx.ALIGN_CENTER)

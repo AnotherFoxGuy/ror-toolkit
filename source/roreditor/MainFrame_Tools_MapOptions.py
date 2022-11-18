@@ -1,12 +1,6 @@
-import wx, math, glob
-import sys, os, os.path
-import ogre.renderer.OGRE as ogre
-from ShapedControls import ShapedWindow
-from ror.rorcommon import *
-from ror.settingsManager import rorSettings
-from ror.logger import log
-from ror.lputils import showedError
 from RoRConstants import *
+from ShapedControls import ShapedWindow
+from ror.lputils import showedError
 
 
 class MapOptionWindow(ShapedWindow):
@@ -20,9 +14,9 @@ class MapOptionWindow(ShapedWindow):
 		grid.SetEmptyCellSize(wx.Size(110, 3))
 		
 		# Window padding
-		spacer_size = (6,6)
-		grid.AddSpacer(spacer_size, (0,0)) # Row 0, Col 0
-		grid.AddSpacer(spacer_size, (0,2)) # Row 0, Col 2
+		#spacer_size = (6,6)
+		#grid.AddSpacer(spacer_size, (0,0)) # Row 0, Col 0
+		#grid.AddSpacer(spacer_size, (0,2)) # Row 0, Col 2
 		
 		r = 1
 		c = 1
@@ -97,7 +91,7 @@ class MapOptionWindow(ShapedWindow):
 		
 		# Bottom padding
 		r += 1
-		grid.AddSpacer(spacer_size, (r, 3))
+		#grid.AddSpacer(spacer_size, (r, 3))
 		
 		self.SetSizerAndFit(grid)
 		self.updateSkin()

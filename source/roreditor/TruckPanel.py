@@ -6,8 +6,6 @@ from ror.settingsManager import rorSettings
 import wx
 import wx.aui
 
-import cStringIO
-
 class TruckViewPanel(wx.Panel):
 	def __init__(self, parent):
 		wx.Panel.__init__(self, parent, wx.ID_ANY, wx.DefaultPosition,
@@ -100,7 +98,7 @@ class TruckViewPanel(wx.Panel):
 		self.parent.truckEditorOgreWin.visibleNodeNumbers(event.IsChecked())
 		event.Skip()
 	def OnchkbeamVisible(self, event):	
-		print "beam visible"
+		print("beam visible")
 		self.parent.truckEditorOgreWin.visibleBeams(event.IsChecked())
 #		event.Skip()
 		
@@ -159,7 +157,7 @@ class TruckViewPanel(wx.Panel):
 				content = f.read()
 				f.close()
 				return content
-			except Exception, err:
+			except Exception as err:
 				log().error(str(err))
 				return None
 		else:

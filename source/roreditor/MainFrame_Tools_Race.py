@@ -1,7 +1,7 @@
 import math, glob
 import wx, os, os.path, copy
 import pickle
-import ogre.renderer.OGRE as ogre
+import Ogre
 from ShapedControls import ShapedWindow
 from ror.rorcommon import *
 from ror.settingsManager import rorSettings
@@ -24,9 +24,9 @@ class Race(ShapedWindow):
 		grid.SetEmptyCellSize(wx.Size(110, 20))
 		
 		# Window padding - sides
-		spacer_size = (6,6)
-		grid.AddSpacer(spacer_size, (0,0)) # Row 0, Col 0
-		grid.AddSpacer(spacer_size, (0,3)) # Row 0, Col 2
+		#spacer_size = (6,6)
+		#grid.AddSpacer(spacer_size, (0,0)) # Row 0, Col 0
+		#grid.AddSpacer(spacer_size, (0,3)) # Row 0, Col 2
 		
 		r = 1
 		c = 1
@@ -98,7 +98,7 @@ class Race(ShapedWindow):
 				 
 		# Window padding - bottom
 		r += 1
-		grid.AddSpacer(spacer_size, (r, c))
+		#grid.AddSpacer(spacer_size, (r, c))
 	
 		self.SetSizerAndFit(grid)
 		self._raceIndex = -1

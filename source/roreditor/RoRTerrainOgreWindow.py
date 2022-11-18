@@ -3,8 +3,9 @@
 import wx, os, os.path, copy, traceback
 from time import  *
 import errno
-import ogre.renderer.OGRE as ogre 
-import ogre.io.OIS as OIS
+import Ogre
+
+from ror import rorcommon
 from ror.truckparser import *
 from ror.terrainparser import *
 from ror.odefparser import *
@@ -59,24 +60,24 @@ class MyDropTarget(wx.PyDropTarget):
 		self.SetDataObject(self.do)
 
 	def OnEnter(self, x, y, d):
-		print "OnEnter: %d, %d, %d\n" % (x, y, d)
+		print("OnEnter: %d, %d, %d\n" % (x, y, d))
 		return wx.DragCopy
 
 	def OnDragOver(self, x, y, d):
-		print "OnDragOver: %d, %d, %d\n" % (x, y, d)
+		print("OnDragOver: %d, %d, %d\n" % (x, y, d))
 		return wx.DragCopy
 
 	def OnLeave(self):
-		print "OnLeave\n"
+		print("OnLeave\n")
 
 	def OnDrop(self, x, y):
-		print "OnDrop: %d %d\n" % (x, y)
+		print("OnDrop: %d %d\n" % (x, y))
 		return True
 
 	def OnData(self, x, y, d):
-		print "OnData: %d, %d, %d\n" % (x, y, d)
+		print("OnData: %d, %d, %d\n" % (x, y, d))
 		self.GetData()
-		print "%s\n" % self.do.GetFilenames()
+		print("%s\n" % self.do.GetFilenames())
 		return d
 	
 class RoRTerrainOgreWindow(wxOgreWindow):
@@ -357,13 +358,13 @@ class RoRTerrainOgreWindow(wxOgreWindow):
 			e.setMaterialName(strMaterialName)
 		return e
 	def localPosToWorld(self, entry, localTupleOrVector):
-		if isinstance(localTupleOrVector, TupleType):
-			v = ogre.Vector3(localTupleOrVector[0], localTupleOrVector[1], localTupleOrVector[2])
-		elif isinstance(localTupleOrVector, ogre.Vector3):
+		if isinstance(localTupleOrVector, tuple):
+			v = Ogre.Vector3(localTupleOrVector[0], localTupleOrVector[1], localTupleOrVector[2])
+		elif isinstance(localTupleOrVector, Ogre.Vector3):
 			v = localTupleOrVector
 		else:
 			raise Exception('coordenate is not vector3 or tuple')
-		return ogre.Quaternion(ogre.Degree(entry.ry), ogre.Vector3(0, 1, 0)) * v + entry.node._getDerivedPosition() 
+		return Ogre.Quaternion(Ogre.Degree(entry.ry), Ogre.Vector3(0, 1, 0)) * v + entry.node._getDerivedPosition() 
 	
 	def animateSelection(self):
 		if not self.selectionMaterial is None:
@@ -426,25 +427,25 @@ class RoRTerrainOgreWindow(wxOgreWindow):
 	
 	def SceneInitialisation(self):
 		log().debug("terrain SceneInitialization started")
-		self.sceneManager = getOgreManager().createSceneManager(ogre.ST_EXTERIOR_CLOSE)
+		self.sceneManager = getOgreManager().createSceneManager() #Ogre.SceneManager.ST_EXTERIOR_CLOSE
 
 		# create a camera
-		cameraUUID = randomID()
-		self.camera = self.sceneManager.createCamera(str(cameraUUID) + "camera")
-		self.camera.lookAt(ogre.Vector3(0, 0, 0)) 
-		self.camera.setPosition(ogre.Vector3(0, 0, 0))
-		
-		# dont set this too low, or you will get z-fights!!
-		self.camera.nearClipDistance = 0.4 # 2
-		self.camera.setAutoAspectRatio(True) 
-		
+		self.camera = self.sceneManager.createCamera(str(randomID()) + 'Camera')
+		self.camera_sn = self.sceneManager.getRootSceneNode().createChildSceneNode()
+		self.camera_sn.attachObject(self.camera)
+		self.camera_sn.lookAt(Ogre.Vector3(0, 0, 0), Ogre.Node.TS_WORLD)
+		self.camera_sn.setPosition(Ogre.Vector3(0, 0, 100))
+		self.camera.nearClipDistance = 1
+		self.camera.setAutoAspectRatio(True)
+
 		# create the Viewport"
-		self.viewport = self.renderWindow.addViewport(self.camera, 0, 0.0, 0.0, 1.0, 1.0) 
-		self.viewport.backgroundColour = ogre.ColourValue(0, 0, 0) 
+		self.viewport = self.renderWindow.addViewport(self.camera, 0, 0.0, 0.0, 1.0, 1.0)
+		self.viewport.backgroundColour = Ogre.ColourValue(0, 0, 0)
+		self.viewport.setOverlaysEnabled(False)  # disable terrain Editor overlays on this viewport
 
 		#set some default values
 		self.sceneDetailIndex = 0
-		self.filtering = ogre.TFO_BILINEAR
+		self.filtering = Ogre.TFO_BILINEAR
 		# bind mouse and keyboard
 		self.Bind(wx.EVT_KEY_DOWN, self.onKeyDown) 
 		self.Bind(wx.EVT_KEY_UP, self.onKeyUp) 
@@ -469,15 +470,15 @@ class RoRTerrainOgreWindow(wxOgreWindow):
 	def createWaterPlane(self):
 		if self.terrain.WaterHeight is None:
 			return
-		plane = ogre.Plane() 
-		plane.normal = ogre.Vector3(0, 1, 0) 
+		plane = Ogre.Plane() 
+		plane.normal = Ogre.Vector3(0, 1, 0) 
 		plane.d = 200 
 		# see http://www.ogre3d.org/docs/api/html/classOgre_1_1MeshManager.html#Ogre_1_1MeshManagera5
 		waterid = str(randomID())
-		mesh = ogre.MeshManager.getSingleton().createPlane('waterPlane' + waterid, "General", plane, 3000, 3000,
-													20, 20, True, 1, 200.0, 200.0, ogre.Vector3(0, 0, 1),
-													ogre.HardwareBuffer.HBU_STATIC_WRITE_ONLY,
-													ogre.HardwareBuffer.HBU_STATIC_WRITE_ONLY,
+		mesh = Ogre.MeshManager.getSingleton().createPlane('waterPlane' + waterid, "General", plane, 3000, 3000,
+													20, 20, True, 1, 200.0, 200.0, Ogre.Vector3(0, 0, 1),
+													Ogre.HardwareBuffer.HBU_STATIC_WRITE_ONLY,
+													Ogre.HardwareBuffer.HBU_STATIC_WRITE_ONLY,
 													True, True)
 		self.waterentity = self.smNewEntity("waterPlane" + waterid + "entity", "waterPlane" + waterid, 'mysimple/water')
 		self.waternode = self.smNewNode('waterNode')
@@ -488,16 +489,16 @@ class RoRTerrainOgreWindow(wxOgreWindow):
 		"""
 		scale = obj.getScale()
 		obj.setScale(1, 1, 1)
-		obj.rotate(ogre.Vector3(1, 0, 0), ogre.Degree(90), relativeTo=ogre.Node.TransformSpace.TS_WORLD)
+		obj.rotate(Ogre.Vector3(1, 0, 0), Ogre.Degree(90), relativeTo=Ogre.Node.TransformSpace.TS_WORLD)
 		pos = obj.getPosition()
 		rot = obj.getOrientation()
 		rot.normalise()
-		obj.rotate(ogre.Vector3(1, 0, 0), ogre.Degree(-90), relativeTo=ogre.Node.TransformSpace.TS_WORLD)
+		obj.rotate(Ogre.Vector3(1, 0, 0), Ogre.Degree(-90), relativeTo=Ogre.Node.TransformSpace.TS_WORLD)
 		obj.setScale(scale)
 
-		rotx = ogre.Radian(rot.getPitch(False)).valueDegrees()
-		roty = ogre.Radian(rot.getRoll(False)).valueDegrees()
-		rotz = -ogre.Radian(rot.getYaw(False)).valueDegrees() 
+		rotx = Ogre.Radian(rot.getPitch(False)).valueDegrees()
+		roty = Ogre.Radian(rot.getRoll(False)).valueDegrees()
+		rotz = -Ogre.Radian(rot.getYaw(False)).valueDegrees() 
 		return pos.x, pos.y, pos.z, rotx, roty, rotz
 		
 	def zoomCamera(self, fromVector, toVector):
@@ -609,8 +610,8 @@ class RoRTerrainOgreWindow(wxOgreWindow):
 		self._selected = selectionClass(self)
 		self.ignorearray = []
 		self._autoTracking = False
-		self.keyPress = ogre.Vector3(0, 0, 0)
-		self.moveVector = ogre.Vector3(0, 0, 0)
+		self.keyPress = Ogre.Vector3(0, 0, 0)
+		self.moveVector = Ogre.Vector3(0, 0, 0)
 		self._cameraCollision = False
 		self._placeWithMouse = self.ObjectTree.chkMousePlacement.IsChecked()
 		self._currentStatusMsg = ""
@@ -747,7 +748,7 @@ class RoRTerrainOgreWindow(wxOgreWindow):
 		defaultx = ifNone(self.terrain.worldX, 0) / 2
 		defaulty = 0
 		defaultz = ifNone(self.terrain.worldZ, 0) / 2
-		defaulty = ifNone(self.getTerrainHeight(ogre.Vector3(defaultx, defaulty, defaultz)), 0) + 2
+		defaulty = ifNone(self.getTerrainHeight(Ogre.Vector3(defaultx, defaulty, defaultz)), 0) + 2
 		if self.terrain.WaterHeight:
 			self.updateWaterPlane(self.terrain.WaterHeight)
 			if defaulty < self.terrain.WaterHeight:
@@ -758,16 +759,16 @@ class RoRTerrainOgreWindow(wxOgreWindow):
 				self.terrain.CameraStartPosition.asList = l
 				l[0] = l[0] + 5
 			if self.terrain.CharacterStartPosition.isZero():
-				l[1] = self.getTerrainHeight(ogre.Vector3(l[0], l[1], l[2])) + 2
+				l[1] = self.getTerrainHeight(Ogre.Vector3(l[0], l[1], l[2])) + 2
 				self.terrain.CharacterStartPosition.asList = l
 				l[0] = l[0] + 5
 			if self.terrain.TruckStartPosition.isZero():				
-				l[1] = self.getTerrainHeight(ogre.Vector3(l[0], l[1], l[2])) + 2
+				l[1] = self.getTerrainHeight(Ogre.Vector3(l[0], l[1], l[2])) + 2
 				self.terrain.TruckStartPosition.asList = l
 			
 		
 
-		except Exception, err:
+		except Exception as err:
 			log().error("Error while setting initial camera:")
 			log().error(str(err))
 			if rorSettings().stopOnExceptions:
@@ -776,13 +777,13 @@ class RoRTerrainOgreWindow(wxOgreWindow):
 		for beam in self.terrain.beamobjs:
 			try:
 				self.addTruckToTerrain(data=beam)
-			except Exception, err:
+			except Exception as err:
 				log().error("Error while adding a Beam Construction to the terrain. Name: %s" % beam.name)
 				log().error(str(err))
 		for obj in self.terrain.objects:
 			try:
 				newE = self.addObjectToTerrain(data=obj)
-			except Exception, err:
+			except Exception as err:
 				log().error("Error while adding an object to the terrain: Name: %s " % obj.name)
 				log().error(str(err))
 				if rorSettings().stopOnExceptions:
@@ -830,7 +831,7 @@ class RoRTerrainOgreWindow(wxOgreWindow):
 			truck.heightFromGround = 0.1
 			truck.informPositionChanged()
 		self.camera.setPosition(self.terrain.CharacterStartPosition.asTuple)
-		self.camera.moveRelative(ogre.Vector3(0, 2, 0))
+		self.camera.moveRelative(Ogre.Vector3(0, 2, 0))
 		
 		self.MapOptions.updateData(self.terrain)
 		self.checkSplineLine()
@@ -991,16 +992,16 @@ class RoRTerrainOgreWindow(wxOgreWindow):
 				misPlace = None
 				self.knownObjects[entry.data.name] = { 
 								 "aabb" : { 
-										 "nearLeftTop"	  : entry.node._getWorldAABB().getCorner(ogre.AxisAlignedBox.NEAR_LEFT_TOP),
-										 "nearRightTop"	 : entry.node._getWorldAABB().getCorner(ogre.AxisAlignedBox.NEAR_LEFT_BOTTOM),
-										 "nearLeftBottom"   : entry.node._getWorldAABB().getCorner(ogre.AxisAlignedBox.FAR_LEFT_TOP),
-										 "nearRightBottom"  : entry.node._getWorldAABB().getCorner(ogre.AxisAlignedBox.FAR_LEFT_BOTTOM),
-										 "farLeftTop"	   : entry.node._getWorldAABB().getCorner(ogre.AxisAlignedBox.NEAR_RIGHT_TOP),
-										 "farRightTop"	  : entry.node._getWorldAABB().getCorner(ogre.AxisAlignedBox.NEAR_RIGHT_BOTTOM),
-										 "farLeftBottom"	: entry.node._getWorldAABB().getCorner(ogre.AxisAlignedBox.FAR_RIGHT_TOP),
-										 "farRightBottom"   : entry.node._getWorldAABB().getCorner(ogre.AxisAlignedBox.FAR_RIGHT_BOTTOM),
-										 "nearMiddle"	   : entry.node._getWorldAABB().getCorner(ogre.AxisAlignedBox.NEAR_LEFT_TOP).midPoint(entry.node._getWorldAABB().getCorner(ogre.AxisAlignedBox.NEAR_LEFT_BOTTOM)),
-										 "farMiddle"		: entry.node._getWorldAABB().getCorner(ogre.AxisAlignedBox.NEAR_RIGHT_TOP).midPoint(entry.node._getWorldAABB().getCorner(ogre.AxisAlignedBox.NEAR_RIGHT_BOTTOM)),
+										 "nearLeftTop"	  : entry.node._getWorldAABB().getCorner(Ogre.AxisAlignedBox.NEAR_LEFT_TOP),
+										 "nearRightTop"	 : entry.node._getWorldAABB().getCorner(Ogre.AxisAlignedBox.NEAR_LEFT_BOTTOM),
+										 "nearLeftBottom"   : entry.node._getWorldAABB().getCorner(Ogre.AxisAlignedBox.FAR_LEFT_TOP),
+										 "nearRightBottom"  : entry.node._getWorldAABB().getCorner(Ogre.AxisAlignedBox.FAR_LEFT_BOTTOM),
+										 "farLeftTop"	   : entry.node._getWorldAABB().getCorner(Ogre.AxisAlignedBox.NEAR_RIGHT_TOP),
+										 "farRightTop"	  : entry.node._getWorldAABB().getCorner(Ogre.AxisAlignedBox.NEAR_RIGHT_BOTTOM),
+										 "farLeftBottom"	: entry.node._getWorldAABB().getCorner(Ogre.AxisAlignedBox.FAR_RIGHT_TOP),
+										 "farRightBottom"   : entry.node._getWorldAABB().getCorner(Ogre.AxisAlignedBox.FAR_RIGHT_BOTTOM),
+										 "nearMiddle"	   : entry.node._getWorldAABB().getCorner(Ogre.AxisAlignedBox.NEAR_LEFT_TOP).midPoint(entry.node._getWorldAABB().getCorner(Ogre.AxisAlignedBox.NEAR_LEFT_BOTTOM)),
+										 "farMiddle"		: entry.node._getWorldAABB().getCorner(Ogre.AxisAlignedBox.NEAR_RIGHT_TOP).midPoint(entry.node._getWorldAABB().getCorner(Ogre.AxisAlignedBox.NEAR_RIGHT_BOTTOM)),
 										 },
 								 "instanceCount"	: 1,
 								 "odefDefinition"   : odefDef,
@@ -1062,7 +1063,7 @@ class RoRTerrainOgreWindow(wxOgreWindow):
 		themanualobject = None
 		try:
 			thenode, theentity, themanualobject = createTruckMesh(self.sceneManager, truckFilename, theuid)
-		except Exception, err:
+		except Exception as err:
 			log().error("Error adding a Beam construction to the terrain")
 			log().error(str(err))
 			raise 
@@ -1090,7 +1091,7 @@ class RoRTerrainOgreWindow(wxOgreWindow):
 		width = self.renderWindow.getWidth()
 		height = self.renderWindow.getHeight()
 		mouseRay = self.camera.getCameraToViewportRay((x / float(width)), (y / float(height)));
-		myRaySceneQuery = self.sceneManager.createRayQuery(ogre.Ray());
+		myRaySceneQuery = self.sceneManager.createRayQuery(Ogre.Ray());
 		myRaySceneQuery.setRay(mouseRay)
 		result = myRaySceneQuery.execute()
 		final = None
@@ -1103,31 +1104,31 @@ class RoRTerrainOgreWindow(wxOgreWindow):
 					   
 
 	def populateScene(self):  
-		self.sceneManager.AmbientLight = ogre.ColourValue(0.7, 0.7, 0.7)
+		self.sceneManager.AmbientLight = Ogre.ColourValue(0.7, 0.7, 0.7)
 
 		fadeColour = (0.8, 0.8, 0.8)
-#		self.sceneManager.setFog(ogre.FOG_LINEAR, fadeColour, 0.001, 5000.0, 10000.0)
+#		self.sceneManager.setFog(Ogre.FOG_LINEAR, fadeColour, 0.001, 5000.0, 10000.0)
 		self.renderWindow.getViewport(0).BackgroundColour = fadeColour
 
 		#create ray template
 		# to know active selection
-		self.selectionRaySceneQuery = self.sceneManager.createRayQuery(ogre.Ray());
+		self.selectionRaySceneQuery = self.sceneManager.createRayQuery(Ogre.Ray());
 		#to stick to ground
-		self.terrainRaySceneQuery = self.sceneManager.createRayQuery(ogre.Ray());
+		self.terrainRaySceneQuery = self.sceneManager.createRayQuery(Ogre.Ray());
 		
 		# setup the sky plane
-		plane = ogre.Plane()
+		plane = Ogre.Plane()
 		plane.d = 5000
-		plane.normal = -ogre.Vector3(0, 1, 0)
+		plane.normal = -Ogre.Vector3(0, 1, 0)
 
 	def stickVectorToGround(self, nPos):
-		nRay = ogre.Ray(ogre.Vector3(nPos.x, 5000, nPos.z), ogre.Vector3(0, -1, 0))
+		nRay = Ogre.Ray(Ogre.Vector3(nPos.x, 5000, nPos.z), Ogre.Vector3(0, -1, 0))
 		self.terrainRaySceneQuery.setRay(nRay)
 		#Perform the scene query
 		result = self.terrainRaySceneQuery.execute()
 		if len(result) > 0 and not result[0] is None and not result[0].worldFragment is None:
 			terrainHeight = result[0].worldFragment.singleIntersection.y
-			return ogre.Vector3(nPos.x, terrainHeight, nPos.z)
+			return Ogre.Vector3(nPos.x, terrainHeight, nPos.z)
 		return nPos
 
 	def ObjectResetRotation(self, rotx=False, roty=False, rotz=False):
@@ -1317,28 +1318,28 @@ class RoRTerrainOgreWindow(wxOgreWindow):
 		if not self.selected.entry:
 			return
 		if len(self.selected.entries) > 0 : 
-			self.selected.multiselectNode.rotate(axis, amount, relativeTo=ogre.Node.TransformSpace.TS_LOCAL)
-			self.selected.axis.rotateNode.rotate(axis, amount, relativeTo=ogre.Node.TransformSpace.TS_LOCAL)
+			self.selected.multiselectNode.rotate(axis, amount, relativeTo=Ogre.Node.TransformSpace.TS_LOCAL)
+			self.selected.axis.rotateNode.rotate(axis, amount, relativeTo=Ogre.Node.TransformSpace.TS_LOCAL)
 			return
 		else:
-			self.selected.entry.node.rotate(axis, amount, relativeTo=ogre.Node.TransformSpace.TS_LOCAL)
+			self.selected.entry.node.rotate(axis, amount, relativeTo=Ogre.Node.TransformSpace.TS_LOCAL)
 		newrot = self.selected.entry.node.getOrientation()
 		
 		# todo: get this working!
 		if False:
-			print amount
+			print(amount)
 			stepsize = 10
-			rotzz = -ogre.Radian(newrot.getYaw()).valueDegrees()
+			rotzz = -Ogre.Radian(newrot.getYaw()).valueDegrees()
 			rotz = rotzz - (rotzz % stepsize)
-			rotyy = ogre.Radian(newrot.getRoll()).valueDegrees()
+			rotyy = Ogre.Radian(newrot.getRoll()).valueDegrees()
 			roty = rotyy - (rotyy % stepsize)
-			rotxx = ogre.Radian(newrot.getPitch()).valueDegrees()
+			rotxx = Ogre.Radian(newrot.getPitch()).valueDegrees()
 			rotx = rotxx - (rotxx % stepsize)
-			print rotx, roty, rotz, rotxx, rotyy, rotzz
+			print(rotx, roty, rotz, rotxx, rotyy, rotzz)
 			self.virtualMoveNode.resetOrientation()
-			self.virtualMoveNode.rotate(ogre.Vector3(0, 0, 1), ogre.Degree(rotz), relativeTo=ogre.Node.TransformSpace.TS_WORLD)
-			self.virtualMoveNode.rotate(ogre.Vector3(0, 1, 0), ogre.Degree(roty), relativeTo=ogre.Node.TransformSpace.TS_WORLD)
-			self.virtualMoveNode.rotate(ogre.Vector3(1, 0, 0), ogre.Degree(rotx), relativeTo=ogre.Node.TransformSpace.TS_WORLD)
+			self.virtualMoveNode.rotate(Ogre.Vector3(0, 0, 1), Ogre.Degree(rotz), relativeTo=Ogre.Node.TransformSpace.TS_WORLD)
+			self.virtualMoveNode.rotate(Ogre.Vector3(0, 1, 0), Ogre.Degree(roty), relativeTo=Ogre.Node.TransformSpace.TS_WORLD)
+			self.virtualMoveNode.rotate(Ogre.Vector3(1, 0, 0), Ogre.Degree(rotx), relativeTo=Ogre.Node.TransformSpace.TS_WORLD)
 		
 			newrot = self.selected.entry.node.getOrientation()
 		
@@ -1393,7 +1394,7 @@ class RoRTerrainOgreWindow(wxOgreWindow):
 				if abs(entry.details["misPlace"].x) > 0.001: mx = entry.details["misPlace"].x
 				if abs(entry.details["misPlace"].y) > 0.001: my = entry.details["misPlace"].y
 				if abs(entry.details["misPlace"].z) > 0.001: mz = entry.details["misPlace"].z
-				entry.node.translate((mx, my, mz), ogre.Node.TransformSpace.TS_LOCAL)
+				entry.node.translate((mx, my, mz), Ogre.Node.TransformSpace.TS_LOCAL)
 				log().debug("Applying misPlace %s to %s" % (", ".join(entry.details["misPlace"].asStrList), entry.data.name))
 		
 	def createDots(self, entry):
@@ -1470,7 +1471,7 @@ class RoRTerrainOgreWindow(wxOgreWindow):
 			forcex /= 10
 	
 		LockSteps = event.AltDown()
-		forceDegree = ogre.Degree(forcex).valueRadians()
+		forceDegree = Ogre.Degree(forcex).valueRadians()
 		
 		self.movingEntry = True
 		arrow_name = self.selected.axis.arrow.getName()
@@ -1482,11 +1483,11 @@ class RoRTerrainOgreWindow(wxOgreWindow):
 		elif arrow_name == self.selected.axis.arrowNames[2]:
 			translate_axis = "Z"
 		elif arrow_name == self.selected.axis.arrowNames[3]:
-			self.rotateSelected(ogre.Vector3(0, 1, 0), forceDegree, LockSteps)
+			self.rotateSelected(Ogre.Vector3(0, 1, 0), forceDegree, LockSteps)
 		elif arrow_name == self.selected.axis.arrowNames[4]:
-			self.rotateSelected(ogre.Vector3(1, 0, 0), forceDegree, LockSteps)
+			self.rotateSelected(Ogre.Vector3(1, 0, 0), forceDegree, LockSteps)
 		elif arrow_name == self.selected.axis.arrowNames[5]:
-			self.rotateSelected(ogre.Vector3(0, 0, 1), forceDegree, LockSteps)
+			self.rotateSelected(Ogre.Vector3(0, 0, 1), forceDegree, LockSteps)
 			
 		if translate_axis is not None:
 			# Fix axis -> OGRE world space
@@ -1508,7 +1509,7 @@ class RoRTerrainOgreWindow(wxOgreWindow):
 		if pos is not None:
 			tmp = pos.y
 			pos.y = 5000
-			ray = ogre.Ray(pos, ogre.Vector3(0, -1, 0))
+			ray = Ogre.Ray(pos, Ogre.Vector3(0, -1, 0))
 			self.terrainRaySceneQuery.setRay(ray)
 			#Perform the scene query
 			self.terrainRaySceneQuery.setQueryTypeMask(0)
@@ -1531,7 +1532,7 @@ class RoRTerrainOgreWindow(wxOgreWindow):
 
 		
 		if event.MiddleDown() and self._placeWithMouse:
-			self.selected.coords.asVector3 = self.getPointedPosition(event) + ogre.Vector3(0, 0.1, 0)
+			self.selected.coords.asVector3 = self.getPointedPosition(event) + Ogre.Vector3(0, 0.1, 0)
 			self.addGeneralObject(self.ObjectTree.selectedfn)		
 		
 			
@@ -1544,7 +1545,7 @@ class RoRTerrainOgreWindow(wxOgreWindow):
 			if event.GetWheelRotation() > 0:
 				dir *= -1   # move backwards
 			
-			self.moveVector += ogre.Vector3(0, 0, dir)
+			self.moveVector += Ogre.Vector3(0, 0, dir)
 		if event.RightDown() or event.LeftDown():
 			self.SetFocus()
 		# ignore selected arrow if control key is pressed
@@ -1564,15 +1565,15 @@ class RoRTerrainOgreWindow(wxOgreWindow):
 			if event.ShiftDown():
 				dx = float(dx) / 10
 				dy = float(dy) / 10
-			self.camera.moveRelative(ogre.Vector3(dx, -dy, 0))
+			self.camera.moveRelative(Ogre.Vector3(dx, -dy, 0))
 		elif event.Dragging() and event.RightIsDown() and self._RMBHere: #Dragging with RMB 
 			x, y = event.GetPosition() 
 			dx = self.StartDragX - x
 			dy = self.StartDragY - y
 			self.StartDragX, self.StartDragY = x, y 
 
-			self.camera.yaw(ogre.Degree(dx / 3.0)) 
-			self.camera.pitch(ogre.Degree(dy / 3.0)) 
+			self.camera.yaw(Ogre.Degree(dx / 3.0)) 
+			self.camera.pitch(Ogre.Degree(dy / 3.0)) 
 		
 		if event.LeftDown() and not event.ControlDown():
 			if event.ShiftDown(): #get distance from previous entry to the new
@@ -1631,10 +1632,10 @@ class RoRTerrainOgreWindow(wxOgreWindow):
 				self.selectionBox.entity.setMaterialName('mysimple/translucientred')
 				self.selectionBox.OnPositionChanged.append(self.moveSelection)
 #				self.selectionBox.OnDeselecting.append(self.hideSelectionBox)
-				self.sphere = ogre.Sphere()
+				self.sphere = Ogre.Sphere()
 				self.sphereQuery = self.sceneManager.createSphereQuery(self.sphere)
 			
-			if self.selected.entry <> self.selectionBox : 
+			if self.selected.entry != self.selectionBox :
 				self.selectionBox.ogrePosition = self.selected.coords.asVector3
 				self.selected.entry = self.selectionBox
 
@@ -1670,7 +1671,7 @@ class RoRTerrainOgreWindow(wxOgreWindow):
 								self.selected.add(self.entries[name])
 #								if r.isAttached():
 #									r.getParentSceneNode().showBoundingBox(True)
-			except Exception, err:
+			except Exception as err:
 				log().error(str(err))
 				raise
 
@@ -1688,7 +1689,7 @@ class RoRTerrainOgreWindow(wxOgreWindow):
 		d = self.cameraVel 
 		if self.cameraQuick:
 			d *= (self.cameraShiftVel / 2)
-		forceDegree = ogre.Degree(1).valueRadians()
+		forceDegree = Ogre.Degree(1).valueRadians()
 		LockSteps = False
 		
 		if event.ShiftDown():
@@ -1729,7 +1730,7 @@ class RoRTerrainOgreWindow(wxOgreWindow):
 #				ry -= 10
 #				e = self.addGeneralObject('road.odef',(p.x, p.y,p.z), (rx, ry, rz)) 
 #				
-#			next = ogre.Vector3(x, 0, x)
+#			next = Ogre.Vector3(x, 0, x)
 			# works
 #			for i in range(0, 25):
 #				rx, ry, rz = e.rotation
@@ -1790,20 +1791,20 @@ class RoRTerrainOgreWindow(wxOgreWindow):
 			self.setWireframe()
 		elif event.m_keyCode == WXK_P: # 80 = P
 			if self.selected.entry is None:
-				print self.selected.coords.format("0.0,0.0,0.0, terrain")
+				print(self.selected.coords.format("0.0,0.0,0.0, terrain"))
 			else:
 				self.selected.entry.logPosRot(self.selected.entry.data.name)
 				
 		elif event.m_keyCode == WXK_X:
 			if self.selected.entry is not None:
-				self.selected.entry.node.rotate(ogre.Vector3(1, 0, 0), ogre.Degree(90))
+				self.selected.entry.node.rotate(Ogre.Vector3(1, 0, 0), Ogre.Degree(90))
 		elif event.m_keyCode == WXK_Y: # Y ogre is Z on RoR
 			if self.selected.entry is not None:
-				self.selected.entry.node.rotate(ogre.Vector3(0, 0, 1), ogre.Degree(90))
+				self.selected.entry.node.rotate(Ogre.Vector3(0, 0, 1), Ogre.Degree(90))
 			
 		elif event.m_keyCode == WXK_Z:					
 			if self.selected.entry is not None:
-				self.selected.entry.node.rotate(ogre.Vector3(0, 1, 0), ogre.Degree(90))
+				self.selected.entry.node.rotate(Ogre.Vector3(0, 1, 0), Ogre.Degree(90))
 			  
 		elif event.m_keyCode == WXK_C:
 			self.cameraCollision = not self.cameraCollision
@@ -1812,25 +1813,25 @@ class RoRTerrainOgreWindow(wxOgreWindow):
 			sleep(PAUSE_PER_SECOND / 10)
 		# rotating with keyboard
 		elif event.m_keyCode == WXK_U:
-			self.rotateSelected(ogre.Vector3(0, 1, 0), -forceDegree, LockSteps)
+			self.rotateSelected(Ogre.Vector3(0, 1, 0), -forceDegree, LockSteps)
 		elif event.m_keyCode == WXK_I:
 			self.ObjectResetRotation(rotz=True)
 		elif event.m_keyCode == WXK_O:
-			self.rotateSelected(ogre.Vector3(0, 1, 0), forceDegree, LockSteps)
+			self.rotateSelected(Ogre.Vector3(0, 1, 0), forceDegree, LockSteps)
 
 		elif event.m_keyCode == WXK_J:
-			self.rotateSelected(ogre.Vector3(0, 0, 1), forceDegree, LockSteps)
+			self.rotateSelected(Ogre.Vector3(0, 0, 1), forceDegree, LockSteps)
 		elif event.m_keyCode == WXK_K:
 			self.ObjectResetRotation(roty=True)
 		elif event.m_keyCode == WXK_L:
-			self.rotateSelected(ogre.Vector3(0, 0, 1), -forceDegree, LockSteps)
+			self.rotateSelected(Ogre.Vector3(0, 0, 1), -forceDegree, LockSteps)
 		
 		elif event.m_keyCode == WXK_DOT:
-			self.rotateSelected(ogre.Vector3(1, 0, 0), forceDegree, LockSteps)
+			self.rotateSelected(Ogre.Vector3(1, 0, 0), forceDegree, LockSteps)
 		elif event.m_keyCode == WXK_COMMA:
 			self.ObjectResetRotation(rotx=True)			
 		elif event.m_keyCode == WXK_M:
-			self.rotateSelected(ogre.Vector3(1, 0, 0), -forceDegree, LockSteps)
+			self.rotateSelected(Ogre.Vector3(1, 0, 0), -forceDegree, LockSteps)
 
 		elif event.m_keyCode == wx.WXK_F4:  # print all info of the object 
 			if self.selected.entry:
@@ -1913,20 +1914,20 @@ If you pressed F1 by mistake, don't press F1 nor F2 nor F3 keys.
 		event.Skip()
 
 	def setFiltering(self):
-		if self.filtering == ogre.TFO_BILINEAR:
-			self.filtering = ogre.TFO_TRILINEAR
+		if self.filtering == Ogre.TFO_BILINEAR:
+			self.filtering = Ogre.TFO_TRILINEAR
 			self.Aniso = 1
-		elif self.filtering == ogre.TFO_TRILINEAR:
-			self.filtering = ogre.TFO_ANISOTROPIC
+		elif self.filtering == Ogre.TFO_TRILINEAR:
+			self.filtering = Ogre.TFO_ANISOTROPIC
 			self.Aniso = 8
 		else:
-			self.filtering = ogre.TFO_BILINEAR
+			self.filtering = Ogre.TFO_BILINEAR
 			self.Aniso = 1
-		ogre.MaterialManager.getSingleton().setDefaultTextureFiltering(self.filtering)
-		ogre.MaterialManager.getSingleton().setDefaultAnisotropy(self.Aniso)
+		Ogre.MaterialManager.getSingleton().setDefaultTextureFiltering(self.filtering)
+		Ogre.MaterialManager.getSingleton().setDefaultAnisotropy(self.Aniso)
 
 	def setWireframe(self):
-		detailsLevel = [ogre.PM_SOLID, ogre.PM_WIREFRAME, ogre.PM_POINTS]
+		detailsLevel = [Ogre.PM_SOLID, Ogre.PM_WIREFRAME, Ogre.PM_POINTS]
 		self.sceneDetailIndex = (self.sceneDetailIndex + 1) % len(detailsLevel)
 		self.camera.polygonMode = detailsLevel[self.sceneDetailIndex]
 	
@@ -1969,8 +1970,8 @@ If you pressed F1 by mistake, don't press F1 nor F2 nor F3 keys.
 		w = self.terrain.WaterHeight
 		if w is None : w = 0.0 
 		if w > ht:
-			return [ogre.Vector3(atPos.x, w , atPos.z), True]
-		return [ogre.Vector3(atPos.x, ht, atPos.z), False]
+			return [Ogre.Vector3(atPos.x, w , atPos.z), True]
+		return [Ogre.Vector3(atPos.x, ht, atPos.z), False]
 
 	def log(self, text, param=[]):
 		""" easy log any floating values, for example: 
@@ -1978,7 +1979,7 @@ If you pressed F1 by mistake, don't press F1 nor F2 nor F3 keys.
 			self.log(' vector3 ', vector)
 		"""
 		
-		if isinstance(param, ogre.Vector3):
+		if isinstance(param, Ogre.Vector3):
 			param = [param.x, param.y, param.z]
 			
 		log().info(text.ljust(17) + " " + " ".join(["%.6f" % x for x in param]))
@@ -1994,8 +1995,8 @@ If you pressed F1 by mistake, don't press F1 nor F2 nor F3 keys.
 #		self._setGuiCaption('POCore/DebugText', Application.debugText)
 
 	def _setGuiCaption(self, elementName, text):
-		element = ogre.OverlayManager.getSingleton().getOverlayElement(elementName, False)
-		element.setCaption(text) # ogre.UTFString(text))
+		element = Ogre.OverlayManager.getSingleton().getOverlayElement(elementName, False)
+		element.setCaption(text) # Ogre.UTFString(text))
 	def MapStatistics(self):
 		totalObjects = 0
 		totalMeters = 0

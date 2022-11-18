@@ -5,7 +5,7 @@
 
 import wx, os, os.path, copy, re
 from decimal import *
-import ogre.renderer.OGRE as ogre
+import Ogre
 from logger import log
 from settingsManager import *
 from ror.rorcommon import *

@@ -1,13 +1,12 @@
 #Lepes and wx documentation Examples
 
 import wx
-import ogre.renderer.OGRE as ogre
-from ror.settingsManager import rorSettings
 from ror.logger import log
 from rorFrame import *
 
-skinBackColor = wx.Color(254, 184, 0)
-skinTransparentColor = wx.Color(0, 0, 0)
+a = wx.SYS_COLOUR_MENU
+skinBackColor = wx.Colour(254, 184, 0)
+skinTransparentColor = wx.Colour(0, 0, 0)
 skinTheme = 'RoR theme' 
 
 

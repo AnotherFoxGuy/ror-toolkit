@@ -215,7 +215,7 @@ class StartupSettingsDialog(wx.Dialog):
 					newpath = None
 			self.ror_installdir_changed(newpath)
 
- 	def on_exit_button_pressed(self, event=None):
+	def on_exit_button_pressed(self, event=None):
 		if self.callback_abort is not None:
 			self.callback_abort()
 

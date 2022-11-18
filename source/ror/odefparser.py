@@ -2,7 +2,7 @@
 # odef definition file updated from wiki on 2009-01-20
 
 import copy, os, os.path
-import ogre.renderer.OGRE as ogre
+import Ogre
 from ror.logger import log
 from ror.rorcommon import *
 from ror.settingsManager import *
@@ -274,7 +274,7 @@ class odefClass(object):
 														   
 #					else:
 #						log().debug('odef file: "%s" ignoring line: "%s"' % (self.filename, oline))	
-		except Exception, err:
+		except Exception as err:
 			log().error(str(err))
 			log().error("Error while parsing file %s, line: %s" % (odefFilename, oline))
 			if rorSettings().stopOnExceptions:

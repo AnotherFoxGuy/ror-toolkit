@@ -4,7 +4,7 @@
 
 import copy, os, os.path
 import errno
-import ogre.renderer.OGRE as ogre
+import Ogre
 from ror.logger import log
 from ror.rorcommon import *
 from ror.settingsManager import *
@@ -38,10 +38,10 @@ class toolkitClass(object):
 		del self.splineNames
 		for p in self.properties:
 			prop = getattr(self, p) 
-			if isinstance(prop, ListType):
+			if isinstance(prop, list):
 				del prop[0:len(prop)]
 				del prop
-			elif isinstance(prop, DictType):
+			elif isinstance(prop, dict):
 				prop.clear()
 				del prop
 			
@@ -65,7 +65,7 @@ class toolkitClass(object):
 	def addPointToSpline(self, UID = '', vector3Pos = None, tuplePos = None):
 		x = positionClass()
 		if vector3Pos is not None:
-			x.asVector3 = vector3
+			x.asVector3 = Ogre.Vector3
 		elif tuplePos is not None:
 			x.asTuple = tuplePos
 		else:
@@ -106,7 +106,7 @@ class toolkitClass(object):
 					
 				x = positionClass()
 				x.asStrList= values
-			except Exception, err:
+			except Exception as err:
 				log().info('error procesing file %s. Ignoring line "%s"' % (toolkitFilename, line))
 				log().info(err)
 				continue
@@ -134,7 +134,7 @@ class toolkitClass(object):
 			try:
 				for k in dicty.keys(): # property name
 					prop = getattr(self, k)
-					if type(prop) is DictType:
+					if type(prop) is dict:
 						for s in prop.keys(): # each Spline points
 							content.append("%s %s\n" % (k, s) )
 							if self.splineNames.has_key(s):
@@ -142,10 +142,10 @@ class toolkitClass(object):
 							for i in range(len(prop[s])): # each point
 								content.append(prop[s][i].leftAlign("point") + '\n')
 							content.append("end_%s\n" % k)
-					elif type(prop) is ListType:
+					elif type(prop) is list:
 						for i in range(len(prop)):
 							content.append(prop[i].leftAlign(k) + "\n")
-			except Exception, err:
+			except Exception as err:
 				log().error('error in file "%s". The file has been truncated to previous line of the error' % fn)
 				log().error(str(err))
 			f = open(fn,'w')

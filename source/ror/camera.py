@@ -1,5 +1,5 @@
 #Chris Ritchey 29/06/2007, rethnor@gmail.com
-import ogre.renderer.OGRE as ogre 
+import Ogre 
 import math
 from random import random
 

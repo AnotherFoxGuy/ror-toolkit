@@ -1,6 +1,6 @@
 import wx, math, glob
 import sys, os, os.path
-import ogre.renderer.OGRE as ogre
+import Ogre
 from ShapedControls import ShapedWindow
 from ror.rorcommon import *
 from ror.settingsManager import rorSettings
@@ -21,9 +21,9 @@ class RoadSystemWindow(ShapedWindow):
 		grid.SetEmptyCellSize(wx.Size(10, 3))
 		
 		# Window padding - sides
-		spacer_size = (6,6)
-		grid.AddSpacer(spacer_size, (0,0)) # Row 0, Col 0
-		grid.AddSpacer(spacer_size, (0,8)) # Row 0, Col 2
+		#spacer_size = (6,6)
+		#grid.AddSpacer(6) # Row 0, Col 0
+		#grid.AddSpacer(6) # Row 0, Col 2
 		
 		r = 1
 		c = 1
@@ -123,7 +123,7 @@ class RoadSystemWindow(ShapedWindow):
 		
 		# Window padding - bottom
 		r += 1
-		grid.AddSpacer(spacer_size, (r,c))
+		#grid.AddSpacer(spacer_size, (r,c))
 		
 		self.SetSizerAndFit(grid)
 		 

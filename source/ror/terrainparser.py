@@ -5,7 +5,7 @@
  
 
 import wx, os, os.path, copy
-import ogre.renderer.OGRE as ogre
+import Ogre
 from logger import log
 from settingsManager import *
 from ror.rorcommon import *
@@ -540,7 +540,7 @@ class RoRTerrain(object):
 			ar.append(str(self.TruckStartPosition.x))
 			ar.append(str(self.TruckStartPosition.y))
 			ar.append(str(self.TruckStartPosition.z))
-		except Exception, err:
+		except Exception as err:
 			log().error(str(err))
 			self.errorSaving = "Bad Truck Start Position"
 			log().error(self.errorSaving)
@@ -548,7 +548,7 @@ class RoRTerrain(object):
 			ar.append(str(self.CameraStartPosition.x))
 			ar.append(str(self.CameraStartPosition.y))
 			ar.append(str(self.CameraStartPosition.z))
-		except Exception, err:
+		except Exception as err:
 			log().error(str(err))
 			self.errorSaving = "Bad Camera Start Position"
 			
@@ -557,7 +557,7 @@ class RoRTerrain(object):
 				ar.append(str(self.CharacterStartPosition.x))
 				ar.append(str(self.CharacterStartPosition.y))
 				ar.append(str(self.CharacterStartPosition.z))
-			except Exception, err:
+			except Exception as err:
 				log().error(str(err))
 				self.errorSaving = "Bad Character Start Position"
 		startline = ", ".join(ar) + "\n"
@@ -593,7 +593,7 @@ class RoRTerrain(object):
 			f = open(filename, 'w')
 			f.writelines(lines)
 			f.close()
-		except Exception, err:
+		except Exception as err:
 			log().error(str(err))
 			self._errorSaving = ("Can not save Terrain, error accessing to disk file:\n %s \n\n Try with Save As...\n" + self._errorSaving) % filename
 			# if exception ocourr, we assert to set modified to True, so it will saved when user choose save As

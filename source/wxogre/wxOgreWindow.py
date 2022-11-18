@@ -1,6 +1,6 @@
 #Thomas Fischer 31/05/2007, thomas@thomasfischer.biz
 import wx 
-import ogre.renderer.OGRE as ogre 
+import Ogre
 from wxogre.OgreManager import *
 
 class wxOgreWindow(wx.PyWindow): 
@@ -98,10 +98,10 @@ class wxOgreWindow(wx.PyWindow):
 		bshow - boolean, True for showing, False for hidding.
 		forceUpdate - boolean, force RenderWindow to update inmediatly
 		"""
-		om = ogre.OverlayManager
+		om = Ogre.OverlayManager
 		singl = om.getSingleton()
 		
-		overlay = ogre.OverlayManager.getSingleton().getByName(name)
+		overlay = Ogre.OverlayManager.getSingleton().getByName(name)
 		if not overlay is None:
 			if bshow:
 				overlay.show()

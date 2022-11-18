@@ -1,6 +1,11 @@
 
-import wx, os, os.path, sys, ConfigParser
-from TrueSingleton import Singleton
+import configparser
+import os
+import os.path
+import sys
+import wx
+
+from ror.TrueSingleton import Singleton
 
 # Lepes: Can not use logger here
 #from logger import log
@@ -173,35 +178,35 @@ class rorSettings(Singleton):
 		
 		logfile = self.concatToToolkitHomeFolder(['logs', 'editor.log'], True)
 		if not os.path.isfile(logfile):
-			print "creating %s" % logfile
+			print("creating %s" % logfile)
 			f = open(logfile, "w")
 			f.close()
 		ogrefile = self.concatToToolkitHomeFolder(['logs', 'Ogre.log'], True)
 		if not os.path.isfile(ogrefile):
-			print "creating %s" % ogrefile
+			print("creating %s" % ogrefile)
 			f = open(ogrefile, "w")
 			f.close()
 
 		filename = self.concatToToolkitHomeFolder(['logs', 'logging.ini'], True)
 		if not os.path.isfile(filename):
-			print "creating %s using encoding: %s " % (filename, sys.getdefaultencoding())
+			print("creating %s using encoding: %s " % (filename, sys.getdefaultencoding()))
 			f = open(filename, "w")
-			f.write(self.loggingContent.encode('utf-8'))
-			f.write("args=( '%s', 'w')\n" % (logfile.replace('\\', '//').encode('utf-8')))
-			f.write(self.logging2.encode('utf-8'))
+			f.write(self.loggingContent)
+			f.write("args=( '%s', 'w')\n" % (logfile.replace('\\', '//')))
+			f.write(self.logging2)
 			f.close()
 			
 			
 					
 	def loadSettings(self):
 		try:
-			self.myConfig = ConfigParser.ConfigParser()
+			self.myConfig = configparser.ConfigParser()
 			self.myConfig.read(self._configFile)
 			self._rorFolder = self.getSetting(ROR, 'BasePath')
 			self._rorHomeFolder = self.getSetting(ROR, 'homedir_path')
-			print "Settings loaded"
-		except Exception, e:
-			print str(e)
+			print("Settings loaded")
+		except Exception as e:
+			print(str(e))
 
 	def getPlatform(self): # copied from rorcommon
 		""" return a string, posible values are:
@@ -220,8 +225,8 @@ class rorSettings(Singleton):
 		try:
 #			print "Retrieving Settings: %s - %s." %(group, key) )
 			return self.myConfig.get(group, key)
-		except Exception, e:
-			print str(e)
+		except Exception as e:
+			print(str(e))
 			self.setSetting(group, key, "")
 			return ""
 
@@ -230,10 +235,10 @@ class rorSettings(Singleton):
 			fp = open(self._configFile, 'w')
 			self.myConfig.write(fp)
 			fp.close()
-			print "Settings saved"
-		except Exception, e:
-			print str(e)
-			
+			print("Settings saved")
+		except Exception as e:
+			print(str(e))
+
 	def has_section(self, section):
 		return self.myConfig.has_section(section)
 	
@@ -249,7 +254,7 @@ class rorSettings(Singleton):
 			if autoSaveFile:
 				self.saveSettings()
 			return True
-		except Exception, e:
+		except Exception as e:
 			return False
 	
 	def getConcatPath(self, strAbsPath, values=[], isFile=False):

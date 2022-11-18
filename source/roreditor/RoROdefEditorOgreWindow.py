@@ -1,6 +1,6 @@
 #Thomas Fischer 31/05/2007, thomas@thomasfischer.biz
 import wx, math
-import ogre.renderer.OGRE as ogre
+import Ogre
 from wxogre.OgreManager import *
 from wxogre.wxOgreWindow import *
 from ror.SimpleTruckRepresentation import *
@@ -39,24 +39,24 @@ class TreeDropTarget(wx.PyDropTarget):
 		self.SetDataObject(self.do)
 
 	def OnEnter(self, x, y, d):
-		print "OnEnter: %d, %d, %d\n" % (x, y, d)
+		print("OnEnter: %d, %d, %d\n" % (x, y, d))
 		return wx.DragCopy
 
 	def OnDragOver(self, x, y, d):
-		print "OnDragOver: %d, %d, %d\n" % (x, y, d)
+		print("OnDragOver: %d, %d, %d\n" % (x, y, d))
 		return wx.DragCopy
 
 	def OnLeave(self):
-		print "OnLeave\n"
+		print("OnLeave\n")
 
 	def OnDrop(self, x, y):
-		print "OnDrop: %d %d\n" % (x, y)
+		print("OnDrop: %d %d\n" % (x, y))
 		return True
 
 	def OnData(self, x, y, d):
-		print "OnData: %d, %d, %d\n" % (x, y, d)
+		print("OnData: %d, %d, %d\n" % (x, y, d))
 		self.GetData()
-		print "%s\n" % self.do.GetFilenames()
+		print("%s\n" % self.do.GetFilenames())
 		return d
 
 
@@ -232,32 +232,30 @@ class ODefEditorOgreWindow(wxOgreWindow):
 		initResources()
 
 		#get the scenemanager
-		self.sceneManager = getOgreManager().createSceneManager(ogre.ST_GENERIC)
+		self.sceneManager = getOgreManager().createSceneManager() #Ogre.SceneManager.ST_GENERIC
 
 		# create a camera
 		self.camera = self.sceneManager.createCamera(str(randomID()) + 'Camera')
-		self.camera.lookAt(ogre.Vector3(0, 0, 0))
-		self.camera.setPosition(ogre.Vector3(0, 0, 50))
+		self.camera_sn = self.sceneManager.getRootSceneNode().createChildSceneNode()
+		self.camera_sn.attachObject(self.camera)
+		self.camera_sn.lookAt(Ogre.Vector3(0, 0, 0), Ogre.Node.TS_WORLD)
+		self.camera_sn.setPosition(Ogre.Vector3(0, 0, 100))
 		self.camera.nearClipDistance = 1
 		self.camera.setAutoAspectRatio(True)
 
-		#set some default values
-		self.sceneDetailIndex = 0
-		self.filtering = ogre.TFO_BILINEAR
-
-
 		# create the Viewport"
 		self.viewport = self.renderWindow.addViewport(self.camera, 0, 0.0, 0.0, 1.0, 1.0)
-		self.viewport.backgroundColour = ogre.ColourValue(128, 128, 128)
+		self.viewport.backgroundColour = Ogre.ColourValue(0, 0, 0)
+		self.viewport.setOverlaysEnabled(False)  # disable terrain Editor overlays on this viewport
 
 		# bind mouse and keyboard
 		d = 10.0 #displacement for key strokes
-		self.ControlKeyDict = {wx.WXK_LEFT:ogre.Vector3(-d, 0.0, 0.0),
-							wx.WXK_RIGHT:ogre.Vector3(d, 0.0, 0.0),
-							wx.WXK_UP:ogre.Vector3(0.0, 0.0, -d),
-							wx.WXK_DOWN:ogre.Vector3(0.0, 0.0, d),
-							wx.WXK_PAGEUP:ogre.Vector3(0.0, d, 0.0),
-							wx.WXK_PAGEDOWN:ogre.Vector3(0.0, -d, 0.0)}
+		self.ControlKeyDict = {wx.WXK_LEFT:Ogre.Vector3(-d, 0.0, 0.0),
+							wx.WXK_RIGHT:Ogre.Vector3(d, 0.0, 0.0),
+							wx.WXK_UP:Ogre.Vector3(0.0, 0.0, -d),
+							wx.WXK_DOWN:Ogre.Vector3(0.0, 0.0, d),
+							wx.WXK_PAGEUP:Ogre.Vector3(0.0, d, 0.0),
+							wx.WXK_PAGEDOWN:Ogre.Vector3(0.0, -d, 0.0)}
 		self.Bind(wx.EVT_KEY_DOWN, self.onKeyDown)
 		#self.Bind(wx.EVT_KEY_UP, self.onKeyUp)
 		self.Bind(wx.EVT_MOUSE_EVENTS, self.onMouseEvent)
@@ -286,19 +284,19 @@ class ODefEditorOgreWindow(wxOgreWindow):
 			self.objnode._updateBounds()
 #			backupRot = self.objnode.getOrientation()
 #			self.objnode.resetOrientation()
-#			self.objnode.pitch(ogre.Degree(90))
+#			self.objnode.pitch(Ogre.Degree(90))
 
 			self.aabb = { 
-				 "nearLeftTop"	  	: self.objnode._getWorldAABB().getCorner(ogre.AxisAlignedBox.NEAR_LEFT_TOP),
-				 "nearRightTop"	 	: self.objnode._getWorldAABB().getCorner(ogre.AxisAlignedBox.NEAR_RIGHT_TOP),
-				 "nearLeftBottom"   : self.objnode._getWorldAABB().getCorner(ogre.AxisAlignedBox.NEAR_LEFT_BOTTOM),
-				 "nearRightBottom"  : self.objnode._getWorldAABB().getCorner(ogre.AxisAlignedBox.NEAR_RIGHT_BOTTOM),
-				 "farLeftTop"	   	: self.objnode._getWorldAABB().getCorner(ogre.AxisAlignedBox.FAR_LEFT_TOP),
-				 "farRightTop"	  	: self.objnode._getWorldAABB().getCorner(ogre.AxisAlignedBox.FAR_RIGHT_TOP),
-				 "farLeftBottom"	: self.objnode._getWorldAABB().getCorner(ogre.AxisAlignedBox.FAR_LEFT_BOTTOM),
-				 "farRightBottom"   : self.objnode._getWorldAABB().getCorner(ogre.AxisAlignedBox.FAR_RIGHT_BOTTOM),
-#				 "nearMiddle"	   : self.objnode._getWorldAABB().getCorner(ogre.AxisAlignedBox.NEAR_LEFT_TOP).midPoint(self.objnode._getWorldAABB().getCorner(ogre.AxisAlignedBox.NEAR_LEFT_BOTTOM)),
-#				 "farMiddle"		: self.objnode._getWorldAABB().getCorner(ogre.AxisAlignedBox.NEAR_RIGHT_TOP).midPoint(self.objnode._getWorldAABB().getCorner(ogre.AxisAlignedBox.NEAR_RIGHT_BOTTOM)),
+				 "nearLeftTop"	  	: self.objnode._getWorldAABB().getCorner(Ogre.AxisAlignedBox.NEAR_LEFT_TOP),
+				 "nearRightTop"	 	: self.objnode._getWorldAABB().getCorner(Ogre.AxisAlignedBox.NEAR_RIGHT_TOP),
+				 "nearLeftBottom"   : self.objnode._getWorldAABB().getCorner(Ogre.AxisAlignedBox.NEAR_LEFT_BOTTOM),
+				 "nearRightBottom"  : self.objnode._getWorldAABB().getCorner(Ogre.AxisAlignedBox.NEAR_RIGHT_BOTTOM),
+				 "farLeftTop"	   	: self.objnode._getWorldAABB().getCorner(Ogre.AxisAlignedBox.FAR_LEFT_TOP),
+				 "farRightTop"	  	: self.objnode._getWorldAABB().getCorner(Ogre.AxisAlignedBox.FAR_RIGHT_TOP),
+				 "farLeftBottom"	: self.objnode._getWorldAABB().getCorner(Ogre.AxisAlignedBox.FAR_LEFT_BOTTOM),
+				 "farRightBottom"   : self.objnode._getWorldAABB().getCorner(Ogre.AxisAlignedBox.FAR_RIGHT_BOTTOM),
+#				 "nearMiddle"	   : self.objnode._getWorldAABB().getCorner(Ogre.AxisAlignedBox.NEAR_LEFT_TOP).midPoint(self.objnode._getWorldAABB().getCorner(Ogre.AxisAlignedBox.NEAR_LEFT_BOTTOM)),
+#				 "farMiddle"		: self.objnode._getWorldAABB().getCorner(Ogre.AxisAlignedBox.NEAR_RIGHT_TOP).midPoint(self.objnode._getWorldAABB().getCorner(Ogre.AxisAlignedBox.NEAR_RIGHT_BOTTOM)),
 				 }
 			self.aabb["dimX"] = self.aabb["nearLeftTop"].distance(self.aabb["farLeftTop"]) 
 			self.aabb["dimY"] = self.aabb["nearLeftTop"].distance(self.aabb["nearRightTop"])
@@ -309,7 +307,7 @@ class ODefEditorOgreWindow(wxOgreWindow):
 	def loadodef(self, filename, uuid):
 		try:
 			self.mainOdef = odefClass(filename)
-		except Exception, err:
+		except Exception as err:
 			self.mainOdef = None
 			log().error("error while processing odef file %s" % filename)
 			log().error(str(err))
@@ -323,18 +321,18 @@ class ODefEditorOgreWindow(wxOgreWindow):
 		self.objnode = self.sceneManager.getRootSceneNode().createChildSceneNode(uuid + "objnode")
 		self.objentity = self.sceneManager.createEntity(uuid + 'objentity', self.mainOdef.meshName)
 		self.objnode.attachObject(self.objentity)
-		self.objnode.rotate(ogre.Vector3(1, 0, 0), ogre.Degree(-90), relativeTo=ogre.Node.TransformSpace.TS_WORLD)
+		self.objnode.rotate(Ogre.Vector3(1, 0, 0), Ogre.Degree(-90), relativeTo=Ogre.Node.TransformSpace.TS_WORLD)
 		
 		try:
-			self.objOriginalMat = ogre.MaterialManager.getSingleton().getByName(self.objentity.getSubEntity(0).getMaterialName())
+			self.objOriginalMat = Ogre.MaterialManager.getSingleton().getByName(self.objentity.getSubEntity(0).getMaterialName())
 			if self.objmat is None:
-				self.objmat = ogre.MaterialManager.getSingleton().getByName(NEWMATNAME)
+				self.objmat = Ogre.MaterialManager.getSingleton().getByName(NEWMATNAME)
 			self.objOriginalMat.copyDetailsTo(self.objmat)
-			# self.objmat = ogre.MaterialManager.getSingleton().getByName(NEWMATNAME)
-			self.objmat.setSceneBlending(ogre.SceneBlendFactor.SBF_SOURCE_ALPHA, ogre.SceneBlendFactor.SBF_DEST_ALPHA)
+			# self.objmat = Ogre.MaterialManager.getSingleton().getByName(NEWMATNAME)
+			self.objmat.setSceneBlending(Ogre.SceneBlendFactor.SBF_SOURCE_ALPHA, Ogre.SceneBlendFactor.SBF_DEST_ALPHA)
 			self.objentity.setMaterialName(NEWMATNAME)
 			self.setMainMeshTrans(50)
-		except Exception, err:
+		except Exception as err:
 			log().error("error while creating main odef model")
 			log().error(str(err))
 
@@ -346,15 +344,15 @@ class ODefEditorOgreWindow(wxOgreWindow):
 			self.createBox(self.mainOdef.boxes[i])
 		log().info("Loaded odef with %d boxes" % len(self.mainOdef.boxes))
 			# box added to self.entries
-#		self.createDOT(ogre.Vector3(0,0,0), mat['ground'])
+#		self.createDOT(Ogre.Vector3(0,0,0), mat['ground'])
 			
 	def getNewMat(self, basematname):
 		uuid = randomID()
 		matname = uuid + "mat"
-		basemat = ogre.MaterialManager.getSingleton().getByName(basematname)
-		mat = ogre.MaterialManager.getSingleton().create(matname, basemat.getGroup())
+		basemat = Ogre.MaterialManager.getSingleton().getByName(basematname)
+		mat = Ogre.MaterialManager.getSingleton().create(matname, basemat.getGroup())
 		basemat.copyDetailsTo(mat)
-		#mat = ogre.MaterialManager.getSingleton().getByName(matname)
+		#mat = Ogre.MaterialManager.getSingleton().getByName(matname)
 		for i in range(0, 2):
 			self.randcolors[i] += 0.1
 			if self.randcolors[i] >= 1:
@@ -368,7 +366,7 @@ class ODefEditorOgreWindow(wxOgreWindow):
 	def setMainMeshTrans(self, alpha):
 		""" set the main mesh transparent """
 		alpha = float(alpha) / float(100)
-		self.objmat.setSceneBlending(ogre.SceneBlendFactor.SBF_SOURCE_ALPHA, ogre.SceneBlendFactor.SBF_DEST_ALPHA)
+		self.objmat.setSceneBlending(Ogre.SceneBlendFactor.SBF_SOURCE_ALPHA, Ogre.SceneBlendFactor.SBF_DEST_ALPHA)
 #		self.objmat.setDiffuse(0.5, 1, 0.5, alpha)
 #		self.objmat.setSpecular(0.5, 1, 0.5, alpha)
 
@@ -423,28 +421,28 @@ class ODefEditorOgreWindow(wxOgreWindow):
 		pass
 
 	def populateScene(self):
-		self.sceneManager.AmbientLight = ogre.ColourValue(201, 201, 173) #0.7, 0.7, 0.7 )
-		self.sceneManager.setShadowTechnique(ogre.ShadowTechnique.SHADOWTYPE_STENCIL_ADDITIVE);
+		self.sceneManager.AmbientLight = Ogre.ColourValue(201, 201, 173) #0.7, 0.7, 0.7 )
+		self.sceneManager.setShadowTechnique(Ogre.ShadowTechnique.SHADOWTYPE_STENCIL_ADDITIVE);
 		self.sceneManager.setSkyDome(True, 'mysimple/terraineditor/previewwindowsky', 4.0, 8.0)
 
 		#self.MainLight = self.sceneManager.createLight('MainLight')
-		#self.MainLight.setPosition (ogre.Vector3(20, 80, 130))
+		#self.MainLight.setPosition (Ogre.Vector3(20, 80, 130))
 
 		# add some fog
-#		self.sceneManager.setFog(ogre.FOG_EXP, ogre.ColourValue.White, 0.0002)
+#		self.sceneManager.setFog(Ogre.FOG_EXP, Ogre.ColourValue.White, 0.0002)
 
 		#create ray template
-		self.rayQuery = self.sceneManager.createRayQuery(ogre.Ray());
+		self.rayQuery = self.sceneManager.createRayQuery(Ogre.Ray());
 
 		# create a floor Mesh
-		plane = ogre.Plane()
-		plane.normal = ogre.Vector3(0, 1, 0)
+		plane = Ogre.Plane()
+		plane.normal = Ogre.Vector3(0, 1, 0)
 		plane.d = 200
 		uuid = str(randomID())
-		ogre.MeshManager.getSingleton().createPlane(uuid + 'FloorPlane', "General", plane, 200000.0, 200000.0,
-													20, 20, True, 1, 50.0, 50.0, ogre.Vector3(0, 0, 1),
-													ogre.HardwareBuffer.HBU_STATIC_WRITE_ONLY,
-													ogre.HardwareBuffer.HBU_STATIC_WRITE_ONLY,
+		Ogre.MeshManager.getSingleton().createPlane(uuid + 'FloorPlane', "General", plane, 200000.0, 200000.0,
+													20, 20, True, 1, 50.0, 50.0, Ogre.Vector3(0, 0, 1),
+													Ogre.HardwareBuffer.HBU_STATIC_WRITE_ONLY,
+													Ogre.HardwareBuffer.HBU_STATIC_WRITE_ONLY,
 													True, True)
 
 		# create floor entity
@@ -459,13 +457,13 @@ class ODefEditorOgreWindow(wxOgreWindow):
 		if not self.objnode is None:
 			self.radius = self.objentity.getBoundingRadius() * 2
 			height = self.objentity.getBoundingBox().getMaximum().z
-			#pos = self.objnode.getPosition() + ogre.Vector3(0, height*0.4, 0)
+			#pos = self.objnode.getPosition() + Ogre.Vector3(0, height*0.4, 0)
 			# always look to the center!
-			pos = self.objnode.getPosition() + ogre.Vector3(0, height * 0.4, 0) + (self.objentity.getBoundingBox().getMinimum() + self.objentity.getBoundingBox().getMaximum()) / 2
+			pos = self.objnode.getPosition() + Ogre.Vector3(0, height * 0.4, 0) + (self.objentity.getBoundingBox().getMinimum() + self.objentity.getBoundingBox().getMaximum()) / 2
 			dx = math.cos(self.camalpha) * self.radius
 			dy = math.sin(self.camalpha) * self.radius
-			self.camera.setPosition(pos - ogre.Vector3(dx, -5, dy))
-			self.camera.lookAt(pos + ogre.Vector3(0, height / 2, 0))
+			self.camera.setPosition(pos - Ogre.Vector3(dx, -5, dy))
+			self.camera.lookAt(pos + Ogre.Vector3(0, height / 2, 0))
 
 			# disable auto rotation
 			#if self.dragging == False:
@@ -531,8 +529,9 @@ class ODefEditorOgreWindow(wxOgreWindow):
 		self.selected.entry = self.entries[key]
 		self.boundBox.dockTo(self.selected.entry)
 		if self.selected.entry.box:
-			print "selected " + self.selected.entry.box.name
-#		self.selected.entry.entity.getParentSceneNode().showBoundingBox(True)
+			print("selected " + self.selected.entry.box.name)
+
+	#		self.selected.entry.entity.getParentSceneNode().showBoundingBox(True)
 
 	def getPointedPosition(self, event,
 						doc=""" return Vector3 """):
@@ -541,7 +540,7 @@ class ODefEditorOgreWindow(wxOgreWindow):
 		width = self.renderWindow.getWidth()
 		height = self.renderWindow.getHeight()
 		mouseRay = self.camera.getCameraToViewportRay((x / float(width)), (y / float(height)));
-		myRaySceneQuery = self.sceneManager.createRayQuery(ogre.Ray());
+		myRaySceneQuery = self.sceneManager.createRayQuery(Ogre.Ray());
 		myRaySceneQuery.setRay(mouseRay)
 		result = myRaySceneQuery.execute()
 		if len(result) > 0 and not result[0] is None and not result[0].worldFragment is None:
@@ -560,7 +559,7 @@ class ODefEditorOgreWindow(wxOgreWindow):
 			if event.ShiftDown():
 				zfactor = 0.01
 			zoom = zfactor * -event.GetWheelRotation()
-			self.camera.moveRelative(ogre.Vector3(0, 0, zoom))
+			self.camera.moveRelative(Ogre.Vector3(0, 0, zoom))
 
 		if event.Dragging() and event.RightIsDown() and event.ControlDown():
 			x, y = event.GetPosition()
@@ -573,7 +572,7 @@ class ODefEditorOgreWindow(wxOgreWindow):
 			else:
 				dx = float(dx) / 50
 				dy = float(dy) / 50
-			self.camera.moveRelative(ogre.Vector3(dx, -dy, 0))
+			self.camera.moveRelative(Ogre.Vector3(dx, -dy, 0))
 
 		elif event.Dragging() and event.RightIsDown(): #Dragging with RMB
 			x, y = event.GetPosition()
@@ -581,8 +580,8 @@ class ODefEditorOgreWindow(wxOgreWindow):
 			dy = self.StartDragY - y
 			self.StartDragX, self.StartDragY = x, y
 
-			self.camera.yaw(ogre.Degree(dx / 3.0))
-			self.camera.pitch(ogre.Degree(dy / 3.0))
+			self.camera.yaw(Ogre.Degree(dx / 3.0))
+			self.camera.pitch(Ogre.Degree(dy / 3.0))
 		
 		if event.LeftDown():
 			self.selectnew(event)
@@ -615,24 +614,24 @@ class ODefEditorOgreWindow(wxOgreWindow):
 			forcey /= 10
 		
 		LockSteps = event.AltDown()
-		forceDegree = ogre.Degree(forcex).valueRadians()
+		forceDegree = Ogre.Degree(forcex).valueRadians()
 		
 		if not event.Dragging():
 			return
 
 		if self.selected.axis.arrow.getName() == self.selected.axis.arrowNames[0]:
-			 self.translateSelected(ogre.Vector3(forcex, 0, 0), LockSteps)
+			 self.translateSelected(Ogre.Vector3(forcex, 0, 0), LockSteps)
 		elif self.selected.axis.arrow.getName() == self.selected.axis.arrowNames[1]:
-			self.translateSelected(ogre.Vector3(0, 0, forcex), LockSteps)
+			self.translateSelected(Ogre.Vector3(0, 0, forcex), LockSteps)
 		elif self.selected.axis.arrow.getName() == self.selected.axis.arrowNames[2]:
-			self.translateSelected(ogre.Vector3(0, forcex, 0), LockSteps)
+			self.translateSelected(Ogre.Vector3(0, forcex, 0), LockSteps)
 		
 		elif self.selected.axis.arrow.getName() == self.selected.axis.arrowNames[3]:
-			self.rotateSelected(ogre.Vector3(0, 1, 0), forceDegree, LockSteps)
+			self.rotateSelected(Ogre.Vector3(0, 1, 0), forceDegree, LockSteps)
 		elif self.selected.axis.arrow.getName() == self.selected.axis.arrowNames[4]:
-			self.rotateSelected(ogre.Vector3(1, 0, 0), forceDegree, LockSteps)
+			self.rotateSelected(Ogre.Vector3(1, 0, 0), forceDegree, LockSteps)
 		elif self.selected.axis.arrow.getName() == self.selected.axis.arrowNames[5]:
-			self.rotateSelected(ogre.Vector3(0, 0, 1), forceDegree, LockSteps)
+			self.rotateSelected(Ogre.Vector3(0, 0, 1), forceDegree, LockSteps)
 
 
 	def translateSelected(self, vector, steps=True,
@@ -654,24 +653,24 @@ class ODefEditorOgreWindow(wxOgreWindow):
 	def rotateSelected(self, axis, amount, steps=True):
 		if not self.selected.entry:
 			return
-		self.selected.entry.node.rotate(axis, amount, relativeTo=ogre.Node.TransformSpace.TS_LOCAL)
+		self.selected.entry.node.rotate(axis, amount, relativeTo=Ogre.Node.TransformSpace.TS_LOCAL)
 		newrot = self.selected.entry.node.getOrientation()
 		
 		# todo: get this working!
 		if False:
-			print amount
+			print(amount)
 			stepsize = 10
-			rotzz = -ogre.Radian(newrot.getYaw()).valueDegrees()
+			rotzz = -Ogre.Radian(newrot.getYaw()).valueDegrees()
 			rotz = rotzz - (rotzz % stepsize)
-			rotyy = ogre.Radian(newrot.getRoll()).valueDegrees()
+			rotyy = Ogre.Radian(newrot.getRoll()).valueDegrees()
 			roty = rotyy - (rotyy % stepsize)
-			rotxx = ogre.Radian(newrot.getPitch()).valueDegrees()
+			rotxx = Ogre.Radian(newrot.getPitch()).valueDegrees()
 			rotx = rotxx - (rotxx % stepsize)
-			print rotx, roty, rotz, rotxx, rotyy, rotzz
+			print(rotx, roty, rotz, rotxx, rotyy, rotzz)
 			self.virtualMoveNode.resetOrientation()
-			self.virtualMoveNode.rotate(ogre.Vector3(0, 0, 1), ogre.Degree(rotz).valueRadians(), relativeTo=ogre.Node.TransformSpace.TS_WORLD)
-			self.virtualMoveNode.rotate(ogre.Vector3(0, 1, 0), ogre.Degree(roty).valueRadians(), relativeTo=ogre.Node.TransformSpace.TS_WORLD)
-			self.virtualMoveNode.rotate(ogre.Vector3(1, 0, 0), ogre.Degree(rotx).valueRadians(), relativeTo=ogre.Node.TransformSpace.TS_WORLD)
+			self.virtualMoveNode.rotate(Ogre.Vector3(0, 0, 1), Ogre.Degree(rotz).valueRadians(), relativeTo=Ogre.Node.TransformSpace.TS_WORLD)
+			self.virtualMoveNode.rotate(Ogre.Vector3(0, 1, 0), Ogre.Degree(roty).valueRadians(), relativeTo=Ogre.Node.TransformSpace.TS_WORLD)
+			self.virtualMoveNode.rotate(Ogre.Vector3(1, 0, 0), Ogre.Degree(rotx).valueRadians(), relativeTo=Ogre.Node.TransformSpace.TS_WORLD)
 		
 			newrot = self.selected.entry.node.getOrientation()
 		
@@ -688,29 +687,29 @@ class ODefEditorOgreWindow(wxOgreWindow):
 			d = 10
 			scale = 5
 		if event.m_keyCode == WXK_D: # A, wx.WXK_LEFT:
-			self.camera.moveRelative(ogre.Vector3(-d, 0, 0))
+			self.camera.moveRelative(Ogre.Vector3(-d, 0, 0))
 		elif event.m_keyCode == WXK_A: # D, wx.WXK_RIGHT:
-			self.camera.moveRelative(ogre.Vector3(d, 0, 0))
+			self.camera.moveRelative(Ogre.Vector3(d, 0, 0))
 		elif event.m_keyCode == WXK_W: #wx.WXK_UP: # W
-			self.camera.moveRelative(ogre.Vector3(0, 0, -d))
+			self.camera.moveRelative(Ogre.Vector3(0, 0, -d))
 		elif event.m_keyCode == WXK_S: # S, wx.WXK_DOWN:
-			self.camera.moveRelative(ogre.Vector3(0, 0, d))
+			self.camera.moveRelative(Ogre.Vector3(0, 0, d))
 		elif event.m_keyCode == WXK_V: #wx.WXK_PAGEUP:
-			self.camera.moveRelative(ogre.Vector3(0, d, 0))
+			self.camera.moveRelative(Ogre.Vector3(0, d, 0))
 		elif event.m_keyCode == WXK_F: #wx.WXK_PAGEDOWN:
-			self.camera.moveRelative(ogre.Vector3(0, -d, 0))
+			self.camera.moveRelative(Ogre.Vector3(0, -d, 0))
 		elif event.m_keyCode == WXK_T: # 84 = T
-			if self.filtering == ogre.TFO_BILINEAR:
-				self.filtering = ogre.TFO_TRILINEAR
+			if self.filtering == Ogre.TFO_BILINEAR:
+				self.filtering = Ogre.TFO_TRILINEAR
 				self.Aniso = 1
-			elif self.filtering == ogre.TFO_TRILINEAR:
-				self.filtering = ogre.TFO_ANISOTROPIC
+			elif self.filtering == Ogre.TFO_TRILINEAR:
+				self.filtering = Ogre.TFO_ANISOTROPIC
 				self.Aniso = 8
 			else:
-				self.filtering = ogre.TFO_BILINEAR
+				self.filtering = Ogre.TFO_BILINEAR
 				self.Aniso = 1
-			ogre.MaterialManager.getSingleton().setDefaultTextureFiltering(self.filtering)
-			ogre.MaterialManager.getSingleton().setDefaultAnisotropy(self.Aniso)
+			Ogre.MaterialManager.getSingleton().setDefaultTextureFiltering(self.filtering)
+			Ogre.MaterialManager.getSingleton().setDefaultAnisotropy(self.Aniso)
 		elif event.m_keyCode == WXK_P:
 			if self.selected:
 				self.selected.entry.logPosRot(self.selected.entry.name)
@@ -742,42 +741,42 @@ class ODefEditorOgreWindow(wxOgreWindow):
 			if self.selected:
 				if self.selected.entry:
 					n = self.selected.entry.node
-					n.setScale(n.getScale() + ogre.Vector3(scale, 0, 0))
+					n.setScale(n.getScale() + Ogre.Vector3(scale, 0, 0))
 					self.updateDetails(self.selected.entry)
 		elif event.m_keyCode == wx.WXK_F6:
 			if self.selected:
 				if self.selected.entry:
 					n = self.selected.entry.node
-					n.setScale(n.getScale() + ogre.Vector3(0, scale, 0))
+					n.setScale(n.getScale() + Ogre.Vector3(0, scale, 0))
 					self.updateDetails(self.selected.entry)
 		elif event.m_keyCode == wx.WXK_F8:
 			if self.selected:
 				if self.selected.entry:
 					n = self.selected.entry.node
-					n.setScale(n.getScale() + ogre.Vector3(0, 0, scale))
+					n.setScale(n.getScale() + Ogre.Vector3(0, 0, scale))
 					self.updateDetails(self.selected.entry)
 		elif event.m_keyCode == wx.WXK_F5:
 			if self.selected:
 				if self.selected.entry:
 					n = self.selected.entry.node
-					n.setScale(n.getScale() - ogre.Vector3(scale, 0, 0))
+					n.setScale(n.getScale() - Ogre.Vector3(scale, 0, 0))
 					self.updateDetails(self.selected.entry)
 		elif event.m_keyCode == wx.WXK_F7:
 			if self.selected:
 				if self.selected.entry:
 					n = self.selected.entry.node
-					n.setScale(n.getScale() - ogre.Vector3(0, scale, 0))
+					n.setScale(n.getScale() - Ogre.Vector3(0, scale, 0))
 					self.updateDetails(self.selected.entry)
 		elif event.m_keyCode == wx.WXK_F9:
 			if self.selected:
 				if self.selected.entry:
 					n = self.selected.entry.node
-					n.setScale(n.getScale() - ogre.Vector3(0, 0, scale))					
+					n.setScale(n.getScale() - Ogre.Vector3(0, 0, scale))					
 					self.updateDetails(self.selected.entry)
 		elif event.m_keyCode == wx.WXK_F12:			
 			ob = odefbox(None)
 			ob.coord0.asVector3 = self.axis.pointer3d.getPosition()
-			ob.coord1.asVector3 = ob.coord0.asVector3 + ogre.Vector3(1, 1, 1)
+			ob.coord1.asVector3 = ob.coord0.asVector3 + Ogre.Vector3(1, 1, 1)
 			ob.virtual = False
 			e = self.createBox(ob, True)
 			self.selected.entry = e 
@@ -796,16 +795,16 @@ class ODefEditorOgreWindow(wxOgreWindow):
 		# if it is a DOT, then don't create aab
 			entry.details = { 
 				 "aabb" : { 
-						 "nearLeftTop"	  : entry.node._getWorldAABB().getCorner(ogre.AxisAlignedBox.NEAR_LEFT_TOP),
-						 "nearRightTop"	 : entry.node._getWorldAABB().getCorner(ogre.AxisAlignedBox.NEAR_LEFT_BOTTOM),
-						 "nearLeftBottom"   : entry.node._getWorldAABB().getCorner(ogre.AxisAlignedBox.FAR_LEFT_TOP),
-						 "nearRightBottom"  : entry.node._getWorldAABB().getCorner(ogre.AxisAlignedBox.FAR_LEFT_BOTTOM),
-						 "farLeftTop"	   : entry.node._getWorldAABB().getCorner(ogre.AxisAlignedBox.NEAR_RIGHT_TOP),
-						 "farRightTop"	  : entry.node._getWorldAABB().getCorner(ogre.AxisAlignedBox.NEAR_RIGHT_BOTTOM),
-						 "farLeftBottom"	: entry.node._getWorldAABB().getCorner(ogre.AxisAlignedBox.FAR_RIGHT_TOP),
-						 "farRightBottom"   : entry.node._getWorldAABB().getCorner(ogre.AxisAlignedBox.FAR_RIGHT_BOTTOM),
-						 "nearMiddle"	   : entry.node._getWorldAABB().getCorner(ogre.AxisAlignedBox.NEAR_LEFT_TOP).midPoint(entry.node._getWorldAABB().getCorner(ogre.AxisAlignedBox.NEAR_LEFT_BOTTOM)),
-						 "farMiddle"		: entry.node._getWorldAABB().getCorner(ogre.AxisAlignedBox.NEAR_RIGHT_TOP).midPoint(entry.node._getWorldAABB().getCorner(ogre.AxisAlignedBox.NEAR_RIGHT_BOTTOM)),
+						 "nearLeftTop"	  : entry.node._getWorldAABB().getCorner(Ogre.AxisAlignedBox.NEAR_LEFT_TOP),
+						 "nearRightTop"	 : entry.node._getWorldAABB().getCorner(Ogre.AxisAlignedBox.NEAR_LEFT_BOTTOM),
+						 "nearLeftBottom"   : entry.node._getWorldAABB().getCorner(Ogre.AxisAlignedBox.FAR_LEFT_TOP),
+						 "nearRightBottom"  : entry.node._getWorldAABB().getCorner(Ogre.AxisAlignedBox.FAR_LEFT_BOTTOM),
+						 "farLeftTop"	   : entry.node._getWorldAABB().getCorner(Ogre.AxisAlignedBox.NEAR_RIGHT_TOP),
+						 "farRightTop"	  : entry.node._getWorldAABB().getCorner(Ogre.AxisAlignedBox.NEAR_RIGHT_BOTTOM),
+						 "farLeftBottom"	: entry.node._getWorldAABB().getCorner(Ogre.AxisAlignedBox.FAR_RIGHT_TOP),
+						 "farRightBottom"   : entry.node._getWorldAABB().getCorner(Ogre.AxisAlignedBox.FAR_RIGHT_BOTTOM),
+						 "nearMiddle"	   : entry.node._getWorldAABB().getCorner(Ogre.AxisAlignedBox.NEAR_LEFT_TOP).midPoint(entry.node._getWorldAABB().getCorner(Ogre.AxisAlignedBox.NEAR_LEFT_BOTTOM)),
+						 "farMiddle"		: entry.node._getWorldAABB().getCorner(Ogre.AxisAlignedBox.NEAR_RIGHT_TOP).midPoint(entry.node._getWorldAABB().getCorner(Ogre.AxisAlignedBox.NEAR_RIGHT_BOTTOM)),
 								 }
 						 }
 			entry.details["long"] = entry.details["aabb"]["nearLeftTop"].distance(entry.details["aabb"]["farLeftTop"]) 
@@ -839,6 +838,6 @@ class ODefEditorOgreWindow(wxOgreWindow):
 
 	def setWireframe(self):
 		
-		detailsLevel = [ogre.PM_SOLID, ogre.PM_WIREFRAME, ogre.PM_POINTS]
+		detailsLevel = [Ogre.PM_SOLID, Ogre.PM_WIREFRAME, Ogre.PM_POINTS]
 		self.sceneDetailIndex = (self.sceneDetailIndex + 1) % len(detailsLevel)
 		self.camera.polygonMode = detailsLevel[self.sceneDetailIndex]

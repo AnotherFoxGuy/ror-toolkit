@@ -8,7 +8,6 @@ import wx.grid
 import wx.html
 import wx.aui
 
-import cStringIO
 # -- wx.SizeReportCtrl --
 # (a utility control that always reports it's client size)
 
@@ -40,7 +39,7 @@ class HelpPanel(wx.Panel):
                 content = f.read()
                 f.close()
                 return content
-            except Exception, err:
+            except Exception as err:
                 log().error(str(err))
                 return None
         else:
@@ -191,8 +190,7 @@ class SettingsPanel(wx.Panel):
         s13.Add((1, 1), 1, wx.EXPAND)
         s13.SetItemMinSize(1, (180, 20))
         
-        grid_sizer = wx.GridSizer(0, 2)
-        grid_sizer.SetHGap(5)
+        grid_sizer = wx.GridSizer(0, 2, 5)
         grid_sizer.Add(s1)
         grid_sizer.Add(s4)
         grid_sizer.Add(s2)
@@ -237,8 +235,8 @@ class SettingsPanel(wx.Panel):
     def CreateColorBitmap(self, c):
         image = wx.EmptyImage(25, 14)
         
-        for x in xrange(25):
-            for y in xrange(14):
+        for x in range(25):
+            for y in range(14):
                 pixcol = c
                 if x == 0 or x == 24 or y == 0 or y == 13:
                     pixcol = wx.BLACK

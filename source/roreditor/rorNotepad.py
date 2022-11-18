@@ -21,7 +21,6 @@ from types import *
 from RoRConstants import *
 from RoRVirtualKeys import *
 
-import cStringIO
 from ror.rorcommon import list_has_value
 #fancy menus
 import wx.lib.agw.flatmenu as FM
@@ -178,10 +177,10 @@ class rorGridEditor(gridlib.Grid):
 					if not idx in idxlist:
 						idxlist.append(idx) 
 			if len(idxlist) < 2: 
-				print "emtpy list to hightlight"
+				print("emtpy list to hightlight")
 				return
 			minidx = min(idxlist)
-			print minidx, idxlist
+			print(minidx, idxlist)
 			idxlist.pop(idxlist.index(minidx))
 			for i in idxlist:
 				item = self.parser.lines.pop(i)
@@ -287,7 +286,7 @@ class rorGridEditor(gridlib.Grid):
 				self.sounds.append(os.path.split(file)[1])
 
 	def currentPath(self):
-		print os.path.dirname(os.path.abspath(__file__))
+		print(os.path.dirname(os.path.abspath(__file__)))
 		return os.path.dirname(os.path.abspath(__file__))
 		evt.Skip()
 
@@ -302,7 +301,7 @@ class rorGridEditor(gridlib.Grid):
 						self.selCells.append(ele)
 		else:
 			# removal from list
-		   for row in range(event.GetTopRow(), event.GetBottomRow() + 1):
+			for row in range(event.GetTopRow(), event.GetBottomRow() + 1):
 				for col in range(event.GetLeftCol(), event.GetRightCol() + 1): 
 					ele = (row, col)
 					if  ele in self.selCells:
@@ -316,20 +315,21 @@ class rorGridEditor(gridlib.Grid):
 		old = super(rorGridEditor, self).GetGridCursorCol()
 		attr = self.GetTable().GetAttr(self.GetGridCursorRow(), old, 0)
 		if attr is not None:
-			print "attr get size " , attr.GetSize()
-		else: print "attr is none for %d %d" % (self.GetGridCursorRow(), old)
-		
+			print("attr get size ", attr.GetSize())
+		else:
+			print("attr is none for %d %d" % (self.GetGridCursorRow(), old))
+
 		event.Skip()
 	def selSameCol(self):
 		if len(selCells) == 0 : return False
 		for ele in range(0, len(self.selCells) - 1):
-			if self.selCells[ele][1] <> self.selCells[ele + 1][1]: return False
+			if self.selCells[ele][1] != self.selCells[ele + 1][1]: return False
 		return True
 	
 	def selSameRow(self):
 		if len(selCells) == 0 : return False
 		for ele in range(0, len(self.selCells) - 1):
-			if self.selCells[ele][0] <> self.selCells[ele + 1][0]: return False
+			if self.selCells[ele][0] != self.selCells[ele + 1][0]: return False
 		return True
 	
 	def GetLabelTextColour(self):
@@ -433,7 +433,7 @@ class rorGridEditor(gridlib.Grid):
 		
 		elif evt.m_keyCode == wx.WXK_F12 :
 			for a in self.selCells:
-				print str(a)
+				print(str(a))
 		elif evt.m_keyCode == wx.WXK_INSERT and evt.ControlDown():
 			self.newRow()
 		elif evt.m_keyCode == wx.WXK_DELETE and evt.ControlDown():

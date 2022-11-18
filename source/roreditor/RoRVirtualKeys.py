@@ -153,7 +153,7 @@ def LogKeyEvent(self, evType, evt):
 
     UniChr = ''
     if "unicode" in wx.PlatformInfo:
-        UniChr = "\"" + unichr(evt.GetUnicodeKey()) + "\""
+        UniChr = "\"" + (evt.GetUnicodeKey()) + "\""
         
     modifiers = ""
     for mod, ch in [(evt.ControlDown(), 'C'),
@@ -233,11 +233,11 @@ if __name__ == "__main__":
     keyCode = 92
     i= 0 
     for i in range (0, 256):
-    	print 'keycode %d is "%s"' % ( i, chr(i))
-    
+        print('keycode %d is "%s"' % (i, chr(i)))
+
     a =  getCommand(keyCode)
-    print "key %d is '%s'" % (keyCode, chr(keyCode))
+    print("key %d is '%s'" % (keyCode, chr(keyCode)))
     if a:
-        print "command " + str(a) + " desc: " + commands[a]["desc"]
+        print("command " + str(a) + " desc: " + commands[a]["desc"])
     else:
-        print " key %s is not a command" % keyCode
+        print(" key %s is not a command" % keyCode)

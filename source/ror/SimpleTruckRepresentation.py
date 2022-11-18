@@ -1,6 +1,6 @@
 #Thomas Fischer 31/05/2007, thomas@thomasfischer.biz
 import wx, os, os.path, copy
-import ogre.renderer.OGRE as ogre 
+import Ogre 
 from ror.truckparser import *
 from ror.terrainparser import *
 from wxogre.OgreManager import *
@@ -22,13 +22,13 @@ def createTruckMesh(sceneManager, fn, uuid):
     
         myManualObject =  sceneManager.createManualObject(str(uuid)+"manual")
 
-        #myManualObjectMaterial = ogre.MaterialManager.getSingleton().create("manualmaterial"+truckname+str(self.randomcounter),"debugger"); 
+        #myManualObjectMaterial = Ogre.MaterialManager.getSingleton().create("manualmaterial"+truckname+str(self.randomcounter),"debugger"); 
         #myManualObjectMaterial.setReceiveShadows(False)
         #myManualObjectMaterial.getTechnique(0).setLightingEnabled(True)
         #myManualObjectMaterial.getTechnique(0).getPass(0).setDiffuse(0,0,1,0)
         #myManualObjectMaterial.getTechnique(0).getPass(0).setAmbient(0,0,1)
         #myManualObjectMaterial.getTechnique(0).getPass(0).setSelfIllumination(0,0,1)
-        #myManualObjectMaterial.getTechnique(0).getPass(0).setCullingMode(ogre.CULL_ANTICLOCKWISE)
+        #myManualObjectMaterial.getTechnique(0).getPass(0).setCullingMode(Ogre.CULL_ANTICLOCKWISE)
 
         matname = "mysimple/water"
 
@@ -36,14 +36,14 @@ def createTruckMesh(sceneManager, fn, uuid):
         myManualObject.estimateVertexCount(2000)
         myManualObject.estimateIndexCount(2000)
 
-        minPos = ogre.Vector3(999,999,999)
-        maxPos = ogre.Vector3(-999,-999,-999)
+        minPos = Ogre.Vector3(999,999,999)
+        maxPos = Ogre.Vector3(-999,-999,-999)
         matname = p.tree['globals'][0]['data'][2]
 
         if len(p.tree['submeshgroups']) > 0:
             nodecounter = 0
             nodes = {}
-            myManualObject.begin(matname, ogre.RenderOperation.OT_TRIANGLE_LIST) 
+            myManualObject.begin(matname, Ogre.RenderOperation.OT_TRIANGLE_LIST) 
             for nodeobj in p.tree['nodes']:
                 if nodeobj.has_key('type'):
                     continue
@@ -95,21 +95,21 @@ def createTruckMesh(sceneManager, fn, uuid):
                                 myManualObject.textureCoord(uv[int(cab[0])][0], uv[int(cab[0])][1])
 
                             except:
-                                print "error with cab: " + str(cab)
+                                print("error with cab: " + str(cab))
                                 pass
             else:
-                print "truck has no faces!"
-                
+                print("truck has no faces!")
+
             myManualObject.end()
             myManualObject.setCastShadows(False)
-            mat = ogre.MaterialManager.getSingleton().getByName(matname)
+            mat = Ogre.MaterialManager.getSingleton().getByName(matname)
             if not mat is None:
-                mat.setCullingMode(ogre.CullingMode.CULL_NONE)
+                mat.setCullingMode(Ogre.CullingMode.CULL_NONE)
             # create the mesh now
             mesh = myManualObject.convertToMesh(str(uuid)+"manual")
         
         # add the lines!
-        myManualObject.begin(matname, ogre.RenderOperation.OT_LINE_LIST) 
+        myManualObject.begin(matname, Ogre.RenderOperation.OT_LINE_LIST) 
         for nodeobj in p.tree['nodes']:
             if nodeobj.has_key('type'):
                 continue
@@ -134,7 +134,7 @@ def createTruckMesh(sceneManager, fn, uuid):
 
        
         return myManualObjectNode, entity, mesh
-    except Exception, err:
+    except Exception as err:
         log().error("error while processing truck file %s" % fn)
         log().error(str(err))
         raise 

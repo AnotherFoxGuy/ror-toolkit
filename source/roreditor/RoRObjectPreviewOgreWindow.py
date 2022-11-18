@@ -1,7 +1,7 @@
 #Thomas Fischer 31/05/2007, thomas@thomasfischer.biz
 from ShapedControls import ShapedWindow
 import wx, math, glob
-import ogre.renderer.OGRE as ogre
+import Ogre
 from wxogre.OgreManager import *
 from wxogre.wxOgreWindow import *
 from ror.SimpleTruckRepresentation import *
@@ -18,27 +18,27 @@ class TreeDropTarget(wx.PyDropTarget):
 		self.SetDataObject(self.do)
 
 	def OnEnter(self, x, y, d):
-		print "OnEnter: %d, %d, %d\n" % (x, y, d)
+		print("OnEnter: %d, %d, %d\n" % (x, y, d))
 		return wx.DragCopy
 
 	def OnDragOver(self, x, y, d):
-		print "OnDragOver: %d, %d, %d\n" % (x, y, d)
+		print("OnDragOver: %d, %d, %d\n" % (x, y, d))
 		return wx.DragCopy
 
 	def OnLeave(self):
-		print "OnLeave\n"
+		print("OnLeave\n")
 
 	def OnDrop(self, x, y):
-		print "OnDrop: %d %d\n" % (x, y)
+		print("OnDrop: %d %d\n" % (x, y))
 		return True
 
 	def OnData(self, x, y, d):
-		print "OnData: %d, %d, %d\n" % (x, y, d)
+		print("OnData: %d, %d, %d\n" % (x, y, d))
 		self.GetData()
-		print "%s\n" % self.do.GetFilenames()
+		print("%s\n" % self.do.GetFilenames())
 		return d
 
-#class SpinControlOverlayElementFactory(ogre.OverlayElementFactory):
+#class SpinControlOverlayElementFactory(Ogre.OverlayElementFactory):
 #	pass
 
 class ObjectPreviewOgreWindow(wxOgreWindow):
@@ -75,20 +75,22 @@ class ObjectPreviewOgreWindow(wxOgreWindow):
 		self.mode = type
 		uuid = randomID()
 		if self.mode == "object":
-			self.sceneManager = getOgreManager().createSceneManager(ogre.ST_GENERIC)
+			self.sceneManager = getOgreManager().createSceneManager()# Ogre.SceneType.ST_GENERIC
 		elif self.mode == "terrain":
-			self.sceneManager = getOgreManager().createSceneManager(ogre.ST_EXTERIOR_CLOSE)
+			self.sceneManager = getOgreManager().createSceneManager() #Ogre.SceneManager.ST_EXTERIOR_CLOSE
 
 		# create a camera
 		self.camera = self.sceneManager.createCamera(str(randomID()) + 'Camera')
-		self.camera.lookAt(ogre.Vector3(0, 0, 0))
-		self.camera.setPosition(ogre.Vector3(0, 0, 100))
+		self.camera_sn = self.sceneManager.getRootSceneNode().createChildSceneNode()
+		self.camera_sn.attachObject(self.camera)
+		self.camera_sn.lookAt(Ogre.Vector3(0, 0, 0), Ogre.Node.TS_WORLD)
+		self.camera_sn.setPosition(Ogre.Vector3(0, 0, 100))
 		self.camera.nearClipDistance = 1
 		self.camera.setAutoAspectRatio(True)
 
 		# create the Viewport"
 		self.viewport = self.renderWindow.addViewport(self.camera, 0, 0.0, 0.0, 1.0, 1.0)
-		self.viewport.backgroundColour = ogre.ColourValue(0, 0, 0)
+		self.viewport.backgroundColour = Ogre.ColourValue(0, 0, 0)
 		self.viewport.setOverlaysEnabled(False) #disable terrain Editor overlays on this viewport
 
 		#create objects
@@ -96,25 +98,25 @@ class ObjectPreviewOgreWindow(wxOgreWindow):
 		
 	def populateScene(self):
 		log().debug("populating Scene")
-		self.sceneManager.AmbientLight = ogre.ColourValue(0.7, 0.7, 0.7)
-		self.sceneManager.setShadowTechnique(ogre.ShadowTechnique.SHADOWTYPE_STENCIL_ADDITIVE);
+		self.sceneManager.AmbientLight = Ogre.ColourValue(0.7, 0.7, 0.7)
+		#self.sceneManager.setShadowTechnique(Ogre.SHADOWTYPE_STENCIL_ADDITIVE)
 		self.sceneManager.setSkyDome(True, 'mysimple/terraineditor/previewwindowsky', 4.0, 8.0)
 
 		#self.MainLight = self.sceneManager.createLight('MainLight')
-		#self.MainLight.setPosition (ogre.Vector3(20, 80, 130))
+		#self.MainLight.setPosition (Ogre.Vector3(20, 80, 130))
 
 		# add some fog
-#		self.sceneManager.setFog(ogre.FOG_EXP, ogre.ColourValue.White, 0.0000002)
+#		self.sceneManager.setFog(Ogre.FOG_EXP, Ogre.ColourValue.White, 0.0000002)
 
 		# create a floor Mesh
-		plane = ogre.Plane()
-		plane.normal = ogre.Vector3(0, 1, 0)
+		plane = Ogre.Plane()
+		plane.normal = Ogre.Vector3(0, 1, 0)
 		plane.d = 200
 		uuid = str(randomID())
-		ogre.MeshManager.getSingleton().createPlane(uuid + 'FloorPlane', "General", plane, 20000000.0, 20000000.0,
-													20, 20, True, 1, 50.0, 50.0, ogre.Vector3(0, 0, 1),
-													ogre.HardwareBuffer.HBU_STATIC_WRITE_ONLY,
-													ogre.HardwareBuffer.HBU_STATIC_WRITE_ONLY,
+		Ogre.MeshManager.getSingleton().createPlane(uuid + 'FloorPlane', "General", plane, 20000000.0, 20000000.0,
+													20, 20, True, 1, 50.0, 50.0, Ogre.Vector3(0, 0, 1),
+													Ogre.HardwareBuffer.HBU_STATIC_WRITE_ONLY,
+													Ogre.HardwareBuffer.HBU_STATIC_WRITE_ONLY,
 													True, True)
 
 		# create floor entity
@@ -128,8 +130,8 @@ class ObjectPreviewOgreWindow(wxOgreWindow):
 			self.logowheelentity = self.sceneManager.createEntity(uuid + 'logoentity', "logowheel.mesh")
 			self.logowheelentity.setMaterialName('mysimple/terrainselect')
 			self.logowheelnode.attachObject(self.logowheelentity)
-			self.logowheelnode.rotate(ogre.Vector3(1, 0, 0), ogre.Degree(-90), relativeTo=ogre.Node.TransformSpace.TS_WORLD)
-			self.logowheelnode.rotate(ogre.Vector3(0, 1, 0), ogre.Degree(90), relativeTo=ogre.Node.TransformSpace.TS_WORLD)
+			self.logowheelnode.rotate(Ogre.Vector3(1, 0, 0), -90, Ogre.Node.TS_WORLD)
+			self.logowheelnode.rotate(Ogre.Vector3(0, 1, 0), 90, Ogre.Node.TS_WORLD)
 			self.logowheelnode.setScale(0.025, 0.025, 0.025)
 
 			uuid = str(randomID())
@@ -137,8 +139,8 @@ class ObjectPreviewOgreWindow(wxOgreWindow):
 			self.logotextentity = self.sceneManager.createEntity(uuid + 'logoentity', "logotext.mesh")
 			self.logotextentity.setMaterialName('mysimple/transblue')
 			self.logotextnode.attachObject(self.logotextentity)
-			self.logotextnode.rotate(ogre.Vector3(1, 0, 0), ogre.Degree(-90), relativeTo=ogre.Node.TransformSpace.TS_WORLD)
-			self.logotextnode.rotate(ogre.Vector3(0, 1, 0), ogre.Degree(90), relativeTo=ogre.Node.TransformSpace.TS_WORLD)
+			self.logotextnode.rotate(Ogre.Vector3(1, 0, 0), -90, Ogre.Node.TS_WORLD)
+			self.logotextnode.rotate(Ogre.Vector3(0, 1, 0), 90, Ogre.Node.TS_WORLD)
 			self.logotextnode.setScale(0.025, 0.025, 0.025)
 
 		else:
@@ -178,7 +180,7 @@ class ObjectPreviewOgreWindow(wxOgreWindow):
 				self.objnode = self.sceneManager.getRootSceneNode().createChildSceneNode(uuid + "objnode")
 				(x, z) = self.getTerrainSize(cfgfile)
 				self.terrainsize = (x, z)
-				print "terrain size: ", x, z
+				print("terrain size: ", x, z)
 				self.objnode.setPosition(x / 2, 0, z / 2)
 				self.sceneManager.setWorldGeometry(cfgfile)
 				del terrain
@@ -200,7 +202,7 @@ class ObjectPreviewOgreWindow(wxOgreWindow):
 	def _loadOdef(self, filename, uuid):
 		try:
 			odef = odefClass(filename)
-		except Exception, err:
+		except Exception as err:
 			odef = None
 			log().error("error while processing odef file %s" % filename)
 			log().error(str(err))
@@ -209,7 +211,7 @@ class ObjectPreviewOgreWindow(wxOgreWindow):
 		self.objnode = self.sceneManager.getRootSceneNode().createChildSceneNode(uuid + "objnode")
 		self.objentity = self.sceneManager.createEntity(uuid + 'objentity', odef.meshName)
 		self.objnode.attachObject(self.objentity)
-		self.objnode.rotate(ogre.Vector3(1, 0, 0), ogre.Degree(-90), relativeTo=ogre.Node.TransformSpace.TS_WORLD)
+		self.objnode.rotate(Ogre.Vector3(1, 0, 0), Ogre.Degree(-90), relativeTo=Ogre.Node.TransformSpace.TS_WORLD)
 		#self.objnode.setPosition(0,0,0)
 		self.objnode.setScale(odef.scale)
 
@@ -218,7 +220,7 @@ class ObjectPreviewOgreWindow(wxOgreWindow):
 		self.objnode = self.sceneManager.getRootSceneNode().createChildSceneNode(uuid + "objnode")
 		self.objentity = self.sceneManager.createEntity(uuid + 'objentity', meshname)
 		self.objnode.attachObject(self.objentity)
-		self.objnode.rotate(ogre.Vector3(1, 0, 0), ogre.Degree(-90), relativeTo=ogre.Node.TransformSpace.TS_WORLD)
+		self.objnode.rotate(Ogre.Vector3(1, 0, 0), Ogre.Degree(-90), relativeTo=Ogre.Node.TransformSpace.TS_WORLD)
 
 
 	def free(self):
@@ -281,8 +283,8 @@ class ObjectPreviewOgreWindow(wxOgreWindow):
 			if self.logovisible:
 				self.radius = 100
 				pos = self.logotextnode.getPosition()
-				lookheight = ogre.Vector3(0, 0, 0)
-				self.logowheelnode.rotate(ogre.Vector3(1, 0, 0), ogre.Degree(1), relativeTo=ogre.Node.TransformSpace.TS_LOCAL)
+				lookheight = Ogre.Vector3(0, 0, 0)
+				self.logowheelnode.rotate(Ogre.Vector3(1, 0, 0), Ogre.Degree(1), relativeTo=Ogre.Node.TransformSpace.TS_LOCAL)
 			else:
 				if self.mode == "object":
 					if self.objentity is None:
@@ -290,19 +292,19 @@ class ObjectPreviewOgreWindow(wxOgreWindow):
 					else:
 						self.radius = self.objentity.getBoundingRadius() * 2
 						height = self.objentity.getBoundingBox().getMaximum().z
-					rotateheight = ogre.Vector3(0, height * 0.2, 0)
+					rotateheight = Ogre.Vector3(0, height * 0.2, 0)
 					pos = self.objnode.getPosition() + rotateheight + (self.objentity.getBoundingBox().getMinimum() + self.objentity.getBoundingBox().getMaximum()) / 2
-					lookheight = ogre.Vector3(0, height / 2, 0)
+					lookheight = Ogre.Vector3(0, height / 2, 0)
 				elif self.mode == "terrain":
 					self.radius = self.terrainsize[0]
-					rotateheight = ogre.Vector3(0, self.terrainsize[0] / 2, 0)
+					rotateheight = Ogre.Vector3(0, self.terrainsize[0] / 2, 0)
 					pos = self.objnode.getPosition() + rotateheight
 					lookheight = -rotateheight
 
 			self.radius += self.wheelRadius
 			dx = math.cos(self.camalpha) * self.radius
 			dy = math.sin(self.camalpha) * self.radius
-			self.camera.setPosition(pos - ogre.Vector3(dx, -5, dy))
+			self.camera.setPosition(pos - Ogre.Vector3(dx, -5, dy))
 			self.camera.lookAt(pos + lookheight)
 			if self.dragging == False:
 				self.camalpha += math.pi / 720
@@ -311,20 +313,20 @@ class ObjectPreviewOgreWindow(wxOgreWindow):
 
 	def OnFrameStarted(self):
 		if self.logovisible:
-			self.logowheelnode.rotate(ogre.Vector3(1, 0, 0), ogre.Degree(1), relativeTo=ogre.Node.TransformSpace.TS_LOCAL)
+			self.logowheelnode.rotate(Ogre.Vector3(1, 0, 0), Ogre.Degree(1), relativeTo=Ogre.Node.TransformSpace.TS_LOCAL)
 		if self.objnode is not None:
 			self.updateCamera()
 
 	def onKeyDown(self, event):
 		if event.m_keyCode == WXK_X:
 			if self.objnode is not None:
-				self.objnode.pitch(ogre.Degree(90))
+				self.objnode.pitch(Ogre.Degree(90))
 		elif event.m_keyCode == WXK_Z:
 			if self.objnode is not None:
-				self.objnode.roll(ogre.Degree(90))
+				self.objnode.roll(Ogre.Degree(90))
 		elif event.m_keyCode == WXK_Y:
 			if self.objnode is not None:
-				self.objnode.yaw(ogre.Degree(90))
+				self.objnode.yaw(Ogre.Degree(90))
 		event.Skip()
 																				
 	def onMouseEvent(self, event):

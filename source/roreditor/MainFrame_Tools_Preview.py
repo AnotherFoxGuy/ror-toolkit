@@ -1,6 +1,6 @@
 import wx, math, glob
 import sys, os, os.path, errno, gc
-import ogre.renderer.OGRE as ogre
+import Ogre
 #from wxogre.OgreManager import *
 #from wxogre.wxOgreWindow import *
 from ShapedControls import ShapedWindow

@@ -3,7 +3,7 @@
 :author: Petr Ohlidal 'only_a_ptr' 01/2016
 """
 
-import ogre.renderer.OGRE as ogre
+import Ogre
 
 class MouseWorldTransforms:
 	"""
